@@ -9,3 +9,7 @@ build/
 *.log
 .claude/
 widget.js
+
+# Husky should only be at root level
+nextjs-agent/.husky/
+svelte-wrapper/.husky/
