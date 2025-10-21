@@ -2,27 +2,46 @@
 
 A production-ready boilerplate template for building sophisticated LLM applications with both **RAG (Retrieval-Augmented Generation)** and **Agentic capabilities**. Built with Next.js 15 and SvelteJS, strictly using TailwindCSS for all styling.
 
+
+
 ## Table of Contents
 
 - [Overview](#overview)
 - [Core Features](#core-features)
+
+### Getting Started
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
+
+### Architecture & Concepts
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+
+### Features & Customization
 - [UI Components](#ui-components)
+- [Starter Prompts](#starter-prompts)
 - [Hooks System](#hooks-system)
 - [Widget SDK](#widget-sdk)
 - [Enhanced Security Model](#enhanced-security-model)
-- [Starter Prompts](#starter-prompts)
-- [Architecture](#architecture)
+
+### Development & Implementation
 - [Implementation Guide](#implementation-guide)
 - [Development](#development)
-- [Deployment](#deployment)
-- [Technology Stack](#technology-stack)
 - [API Reference](#api-reference)
+
+### Production & Deployment
 - [Security](#security)
+- [Deployment](#deployment)
+
+### Community & Resources
 - [Contributing](#contributing)
 - [Changelog](#changelog)
+- [Roadmap](#roadmap)
+- [Support](#support)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
 
 ## Overview
 
@@ -48,6 +67,8 @@ This project provides a **full-stack boilerplate** for creating working AI agent
 2. **SvelteJS Wrapper** - Embeddable widget for seamless integration into any website
 
 The system is fully customizable through environment variables, allowing adaptation to any use case without code changes.
+
+
 
 ## Core Features
 
@@ -84,6 +105,8 @@ The system is fully customizable through environment variables, allowing adaptat
 - **Testing Ready**: Jest configuration with ES modules support
 - **Docker Support**: Complete Docker Compose setup for local testing
 - **Monorepo Structure**: Clean separation between frontend agent and embeddable widget
+
+
 
 ## Quick Start
 
@@ -188,6 +211,8 @@ The playground provides:
 - Configuration examples
 - Setup instructions
 - Testing checklist
+
+
 
 ## Project Structure
 
@@ -314,6 +339,8 @@ virtual-agent/
 └── README.md                          # This file
 ```
 
+
+
 ## Configuration
 
 The virtual agent is configured entirely through environment variables, making it adaptable to any use case.
@@ -416,11 +443,161 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_EMBED_URL="http://localhost:3000/embed"
 ```
 
+
+
+## Architecture
+
+### System Architecture Overview
+
+```
+┌─────────────────────────────────────┐
+│         User Interface              │
+│   - Chat Components (TailwindCSS)   │
+│   - Message Bubbles                 │
+│   - SVG Backgrounds                 │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│      Next.js 15 App Router          │
+│   - Server Components               │
+│   - API Routes (SSE Streaming)      │
+│   - Middleware (CORS, Rate Limit)   │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│   Environment Configuration         │
+│   - System Prompts                  │
+│   - UI Customization                │
+│   - Theme & Branding                │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│      Business Logic Layer           │
+│   - Rate Limiting                   │
+│   - Input Validation                │
+│   - Context Management              │
+└──────────────┬──────────────────────┘
+               │
+         ┌─────┴─────┐
+         │           │
+┌────────▼────┐ ┌────▼──────────┐
+│  LangChain  │ │ Vector DB     │
+│  - Claude   │ │ (Qdrant)      │
+│  - OpenAI   │ │ - Embeddings  │
+│  - Gemini   │ │ - RAG         │
+└─────────────┘ └───────────────┘
+```
+
+### RAG Architecture
+
+**Vector Database Integration:**
+- Qdrant for high-performance vector storage
+- SentenceTransformer embeddings for semantic representation
+- Hybrid search patterns with metadata filtering
+- Intelligent document chunking strategies
+
+**Retrieval Pipeline:**
+1. User Query → Embedding Generation
+2. Vector Similarity Search (top-k results)
+3. Optional Reranking for relevance
+4. Context Assembly from retrieved documents
+5. LLM Generation with context
+
+**Key Components:**
+- `/src/lib/vector-db/` - Vector database operations
+- `/src/lib/embeddings/` - Embedding model initialization
+- `/src/lib/retrieval/` - Query processing and reranking
+- `/src/lib/langchain/rag-chains.ts` - RAG-specific chains
+
+### Agentic Workflows
+
+**LangGraph State Management:**
+- Multi-step agent workflows with persistent state
+- PostgreSQL checkpointing for state persistence
+- Tool integration for extending capabilities
+- Conditional routing based on agent decisions
+
+**ReAct Agent Pattern:**
+- Agent that plans, executes tools, and reflects on results
+- Extensible tool system for custom capabilities
+- Human-in-the-loop approval gates (optional)
+- Automatic error recovery and fallback mechanisms
+
+**Key Components:**
+- `/src/lib/langchain/graph-manager.ts` - LangGraph orchestration
+- `/src/lib/langchain/agents/` - Agent definitions
+- `/src/lib/langchain/tools/` - Tool implementations
+- `/src/lib/langchain/state/` - State schemas
+- `/src/lib/langchain/persistence/` - PostgreSQL checkpointing
+
+### Streaming Response Architecture
+
+**Server-Sent Events (SSE):**
+- Unidirectional streaming from server to client
+- Built-in reconnection with Last-Event-ID
+- HTTP-based for firewall/proxy compatibility
+- Native browser EventSource API support
+- Real-time token-by-token delivery
+
+**Request/Response Flow:**
+1. Client sends POST to `/api/chat`
+2. Server initiates SSE connection
+3. Tokens stream in real-time
+4. Connection closes after `[DONE]`
+5. Automatic error handling and retry
+
+
+
+## Technology Stack
+
+### Next.js Agent (Core AI Application)
+- **Framework**: Next.js 15 (App Router) with React 19
+- **Language**: TypeScript (full type safety)
+- **LLM Orchestration**:
+  - LangChain for LLM abstraction
+  - LangGraph for agent workflows
+  - `@langchain/anthropic` for Claude
+  - `@langchain/openai` for GPT
+  - `@langchain/google-genai` for Gemini
+- **Vector Database**: Qdrant for embeddings
+- **Embeddings**: SentenceTransformer models
+- **Database**: PostgreSQL for relational data
+- **Streaming**: Server-Sent Events (SSE)
+- **Styling**: TailwindCSS only (strictly enforced)
+- **State Management**: React hooks, Zustand, LangGraph
+- **Validation**: Zod for runtime type validation
+- **Authentication**: NextAuth.js with OAuth
+- **Code Quality**: ESLint, Prettier, Husky, lint-staged
+- **Testing**: Jest, React Testing Library
+- **Build**: Next.js Turbopack
+
+### SvelteJS Widget (Embeddable Integration)
+- **Framework**: Svelte 5 (compiled to standalone widget)
+- **Language**: TypeScript
+- **Purpose**: Lightweight UI shell (button, dialog, iframe)
+- **Styling**: TailwindCSS only (strictly enforced)
+- **Build**: Vite 6 for fast bundling
+- **State**: Svelte stores for widget state
+- **Communication**: postMessage API for iframe
+- **Code Quality**: ESLint, Prettier, svelte-check, Husky
+- **Bundle**: Compiles to single `widget.js` file
+
+### Infrastructure & DevOps
+- **Containerization**: Docker with multi-stage builds
+- **Deployment**: Cloud-agnostic (AWS, GCP, Azure, Vercel, etc.)
+- **Logging**: Structured logging with cloud-agnostic aggregation
+- **Monitoring**: Health check endpoints for any monitoring service
+- **Environment**: Multi-environment configuration (.env files)
+- **Version Control**: Git with conventional commits
+- **CI/CD Ready**: GitHub Actions, GitLab CI, or any CI/CD platform
+
+
+
 ## UI Components
 
-### Chat Header Component (To Be Implemented)
+### Chat Header Component
 
-The `ChatHeader.tsx` component should be created to display agent information, status, and action buttons at the top of the chat interface.
+The `ChatHeader.tsx` component displays agent information, status, and action buttons at the top of the chat interface.
 
 **Component Responsibilities:**
 - Display agent name and avatar
@@ -467,9 +644,9 @@ The `ChatHeader.tsx` component should be created to display agent information, s
 - Ensure sufficient color contrast (TEXT_PRIMARY vs background)
 - Support keyboard navigation
 
-### Message Bubble Component (To Be Implemented)
+### Message Bubble Component
 
-The `MessageBubble.tsx` component should be created to display individual chat messages with full TailwindCSS customization.
+The `MessageBubble.tsx` component displays individual chat messages with full TailwindCSS customization.
 
 **Current State:**
 - Currently, `MessageList.tsx` renders all messages
@@ -519,9 +696,9 @@ The component uses flex layout that reverses direction based on the message role
 - Timestamps use TEXT_MUTED for reduced visual weight
 - Metadata uses TEXT_SECONDARY when needed
 
-### Chat Background Component (To Be Implemented)
+### Chat Background Component
 
-The `ChatBackground.tsx` component should be created to support **customizable SVG backgrounds** for visual branding.
+The `ChatBackground.tsx` component supports **customizable SVG backgrounds** for visual branding.
 
 **Background Location:**
 
@@ -616,6 +793,152 @@ Apply theme colors using Tailwind classes:
 - Container backgrounds: `bg-background`
 
 This approach ensures consistent theming across the application by referencing the extended Tailwind theme values instead of hardcoding colors. All typography elements use the appropriate semantic color (primary, secondary, muted, inverse) based on their importance and context.
+
+
+
+## Starter Prompts
+
+Starter Prompts provide users with suggested questions or actions when the chat interface first loads, reducing friction and guiding users toward valuable interactions.
+
+### Purpose and Benefits
+
+**Reduce Cognitive Load:**
+Users often don't know what to ask or what the agent can do. Starter prompts provide immediate examples of capabilities. They eliminate the "blank canvas" problem of empty chat interfaces. They guide users toward high-value use cases quickly.
+
+**Improve Engagement:**
+Users are more likely to interact when presented with clear options. Suggested questions have higher conversion rates than empty states. They reduce time-to-first-message significantly. They help users discover features they might not know about.
+
+**Use Case Discovery:**
+Showcase the agent's capabilities through examples. Highlight unique or powerful features. Guide users through common workflows. Educate users on what types of questions work best.
+
+### Configuration
+
+Starter prompts are configured via environment variables as JSON arrays.
+
+**Environment Variable Structure:**
+Add `STARTER_PROMPTS` to your `.env.local` file as a JSON-encoded array of strings. Each string represents one suggested question or action. Limit to 3-4 prompts for optimal visual design. Update prompts based on user analytics and feedback.
+
+**Important: LLM Prompt Transformation:**
+Starter prompts displayed to users should be transformed into optimized LLM prompts before sending to the agent. The displayed prompt is user-facing and conversational, while the actual prompt sent to the LLM can be more detailed with context and instructions. For example, a user-facing prompt "Track my order" might be transformed to "I need help tracking my recent order. Can you help me find the status?" before being sent to the agent.
+
+**Example Configuration:**
+```env
+STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
+```
+
+**Category-Based Prompts:**
+For more sophisticated implementations, structure prompts by category using JSON objects with category and prompts fields. This allows grouping related suggestions under category headers like "Support", "Sales", "Technical".
+
+### UI Component Implementation
+
+Create a `StarterPrompts.tsx` component to display suggestions in the chat interface.
+
+**Component Location:**
+Place the component at `/nextjs-agent/src/components/chat/StarterPrompts.tsx`. Import and render it in `ChatInterface.tsx` when the message list is empty. Hide the component once the user sends their first message. Re-show prompts when conversation is reset.
+
+**Visual Design:**
+Display prompts as clickable chips or cards arranged in a grid layout. Use PRIMARY_COLOR for hover states and selection feedback. Include subtle icons to indicate interactivity (arrow, sparkle, or chat bubble). Apply smooth hover transitions and click animations for tactile feedback. Ensure mobile-responsive layout with proper touch targets (minimum 44x44px).
+
+**Styling Approach:**
+Use Tailwind utility classes exclusively: `bg-secondary/10`, `hover:bg-primary`, `text-primary`, `rounded-lg`, `p-3`, `cursor-pointer`. Apply flex or grid layout for responsive arrangement. Add transition classes for smooth interactions. Use TEXT_SECONDARY color for prompt text with TEXT_PRIMARY on hover.
+
+**Prompt Transformation Logic:**
+When a user clicks a starter prompt, implement a transformation layer that converts the short, user-friendly prompt into a more contextual LLM prompt. This can include adding user context, session information, or expanding abbreviated prompts into complete questions. The transformation ensures better LLM responses while keeping the UI clean and concise. Store prompt mappings in a configuration file or implement a simple transformation function that enriches the prompt before sending.
+
+### Contextual Suggestions
+
+Beyond static starter prompts, implement dynamic suggestions based on conversation context.
+
+**Post-Message Suggestions:**
+Use a Post-Message hook to analyze agent responses and generate relevant follow-up questions. The LLM can suggest 2-3 contextual next questions based on the current conversation. Display these as chips below the agent's message. Track which suggestions users click to improve relevance over time.
+
+**Implementation Pattern:**
+Create a post-message hook at `/nextjs-agent/src/middleware/post-message/suggestion-generator.ts`. Use the LLM with a specific prompt asking for follow-up suggestions. Return suggestions as metadata attached to the agent response. Render suggestions in `MessageBubble.tsx` as interactive buttons. Send clicked suggestions as new user messages.
+
+**Suggestion Prompt Template:**
+Ask the LLM: "Based on this conversation, suggest 2-3 relevant follow-up questions the user might ask. Return only the questions as a JSON array." Parse the LLM response and validate the JSON structure. Fall back to empty array if parsing fails. Cache suggestions to avoid redundant LLM calls.
+
+### Category Organization
+
+Group starter prompts by use case category for better user navigation.
+
+**Category Structure:**
+Define categories like "Getting Started", "Account Help", "Product Information", and "Technical Support". Assign 2-3 prompts to each category. Display categories as tabs or expandable sections. Allow users to browse categories to find relevant prompts.
+
+**Configuration Format:**
+Use a JSON object with category names as keys and prompt arrays as values. Store in environment variable or separate JSON configuration file. Example: `{"Support": ["Track order", "Return item"], "Sales": ["View products", "Request quote"]}`
+
+**UI Implementation:**
+Create a tabbed interface or accordion layout for categories. Apply active state styling to the selected category. Lazy-load category prompts to improve initial render performance. Remember the user's last-selected category for returning visitors.
+
+### Analytics and Optimization
+
+Track starter prompt performance to optimize engagement.
+
+**Metrics to Track:**
+Click-through rate for each prompt (clicks / impressions). Conversion rate from prompt click to successful conversation. Time from page load to first interaction (with vs without prompts). Which prompts lead to highest user satisfaction scores.
+
+**Implementation:**
+Use the Widget SDK's `VirtualAgent.track()` method to send events. Track `starter_prompt_shown` when prompts are displayed. Track `starter_prompt_clicked` with the prompt text as a property. Include prompt position and category in event properties. Send events to your analytics platform (Mixpanel, Google Analytics, etc.).
+
+**Optimization Loop:**
+Review analytics monthly to identify low-performing prompts. A/B test different prompt variations to find optimal phrasing. Update prompts based on seasonal trends or new features. Remove prompts with <5% click-through rate. Promote high-performing prompts to more prominent positions.
+
+### Best Practices
+
+**Writing Effective Prompts:**
+- Use action-oriented language ("Track my order" not "Order tracking")
+- Keep prompts concise (5-8 words maximum) for UI display
+- Make prompts specific rather than generic
+- Address common user pain points
+- Use natural, conversational language
+- Avoid jargon or technical terms
+- Design prompts with transformation in mind - short display text, detailed LLM prompt
+- Map user-facing prompts to optimized LLM instructions for better responses
+
+**Visual Design:**
+- Limit to 3-4 prompts to avoid overwhelming users
+- Use consistent sizing and spacing
+- Ensure sufficient color contrast for accessibility
+- Provide clear hover and focus states
+- Make prompts visually distinct from messages
+- Test on mobile devices for touch usability
+
+**User Experience:**
+- Show prompts immediately on load (no delay)
+- Hide prompts after first user message
+- Restore prompts when conversation is reset
+- Don't auto-send prompts (require explicit click)
+- Provide visual feedback on click
+- Ensure prompts work with keyboard navigation
+
+### Integration with Widget SDK
+
+Extend the Widget SDK to support programmatic prompt management.
+
+**New SDK Methods:**
+Add `VirtualAgent.showSuggestions(prompts)` to display custom suggestions dynamically. Add `VirtualAgent.hideSuggestions()` to remove suggestions from view. Add `VirtualAgent.setSuggestions(prompts)` to update the default starter prompts. Support callback parameter to track which suggestion was clicked.
+
+**Example Usage:**
+```javascript
+// Show custom suggestions after specific user action
+VirtualAgent.showSuggestions([
+  'Learn more about this feature',
+  'See a demo',
+  'Contact support'
+]);
+
+// Track which suggestion was clicked
+VirtualAgent.on('suggestion-clicked', (data) => {
+  console.log('User clicked:', data.suggestion);
+});
+```
+
+**Implementation Location:**
+Add methods to the Widget SDK in `/svelte-wrapper/src/lib/utils/widget-api.ts`. Use postMessage to communicate suggestions to the iframe. Store suggestions in the widget's Svelte store. Render suggestions using the `StarterPrompts.tsx` component.
+
+
+
 
 ## Hooks System
 
@@ -724,6 +1047,8 @@ The agent processes hooks in the following sequence: Pre-Message hooks execute f
 **Security and Compliance:** Use Pre-Message hooks for authentication and authorization. Use Post-Message hooks to redact PII from responses.
 
 **Error Recovery:** Use On-Error hooks to provide friendly error messages. Use On-Error hooks to implement automatic retry logic.
+
+
 
 ## Widget SDK
 
@@ -841,6 +1166,8 @@ Use the track method to send events to your analytics platform. Common events to
 - Support high contrast modes
 - Test with assistive technologies
 
+
+
 ## Enhanced Security Model
 
 The Virtual Agent implements a token-based security model inspired by OpenAI's ChatKit, ensuring API keys remain secure on the server while providing seamless client authentication.
@@ -946,240 +1273,7 @@ Deprecate API key authentication with advance notice. Enforce token-based auth f
 **Phase 3 - Cleanup:**
 Remove API key authentication code paths. Update documentation to reflect token-only approach. Audit codebase for any remaining API key references. Enhance monitoring with token-specific metrics.
 
-## Starter Prompts
 
-Starter Prompts provide users with suggested questions or actions when the chat interface first loads, reducing friction and guiding users toward valuable interactions.
-
-### Purpose and Benefits
-
-**Reduce Cognitive Load:**
-Users often don't know what to ask or what the agent can do. Starter prompts provide immediate examples of capabilities. They eliminate the "blank canvas" problem of empty chat interfaces. They guide users toward high-value use cases quickly.
-
-**Improve Engagement:**
-Users are more likely to interact when presented with clear options. Suggested questions have higher conversion rates than empty states. They reduce time-to-first-message significantly. They help users discover features they might not know about.
-
-**Use Case Discovery:**
-Showcase the agent's capabilities through examples. Highlight unique or powerful features. Guide users through common workflows. Educate users on what types of questions work best.
-
-### Configuration
-
-Starter prompts are configured via environment variables as JSON arrays.
-
-**Environment Variable Structure:**
-Add `STARTER_PROMPTS` to your `.env.local` file as a JSON-encoded array of strings. Each string represents one suggested question or action. Limit to 3-4 prompts for optimal visual design. Update prompts based on user analytics and feedback.
-
-**Example Configuration:**
-```env
-STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
-```
-
-**Category-Based Prompts:**
-For more sophisticated implementations, structure prompts by category using JSON objects with category and prompts fields. This allows grouping related suggestions under category headers like "Support", "Sales", "Technical".
-
-### UI Component Implementation
-
-Create a `StarterPrompts.tsx` component to display suggestions in the chat interface.
-
-**Component Location:**
-Place the component at `/nextjs-agent/src/components/chat/StarterPrompts.tsx`. Import and render it in `ChatInterface.tsx` when the message list is empty. Hide the component once the user sends their first message. Re-show prompts when conversation is reset.
-
-**Visual Design:**
-Display prompts as clickable chips or cards arranged in a grid layout. Use PRIMARY_COLOR for hover states and selection feedback. Include subtle icons to indicate interactivity (arrow, sparkle, or chat bubble). Apply smooth hover transitions and click animations for tactile feedback. Ensure mobile-responsive layout with proper touch targets (minimum 44x44px).
-
-**Styling Approach:**
-Use Tailwind utility classes exclusively: `bg-secondary/10`, `hover:bg-primary`, `text-primary`, `rounded-lg`, `p-3`, `cursor-pointer`. Apply flex or grid layout for responsive arrangement. Add transition classes for smooth interactions. Use TEXT_SECONDARY color for prompt text with TEXT_PRIMARY on hover.
-
-### Contextual Suggestions
-
-Beyond static starter prompts, implement dynamic suggestions based on conversation context.
-
-**Post-Message Suggestions:**
-Use a Post-Message hook to analyze agent responses and generate relevant follow-up questions. The LLM can suggest 2-3 contextual next questions based on the current conversation. Display these as chips below the agent's message. Track which suggestions users click to improve relevance over time.
-
-**Implementation Pattern:**
-Create a post-message hook at `/nextjs-agent/src/middleware/post-message/suggestion-generator.ts`. Use the LLM with a specific prompt asking for follow-up suggestions. Return suggestions as metadata attached to the agent response. Render suggestions in `MessageBubble.tsx` as interactive buttons. Send clicked suggestions as new user messages.
-
-**Suggestion Prompt Template:**
-Ask the LLM: "Based on this conversation, suggest 2-3 relevant follow-up questions the user might ask. Return only the questions as a JSON array." Parse the LLM response and validate the JSON structure. Fall back to empty array if parsing fails. Cache suggestions to avoid redundant LLM calls.
-
-### Category Organization
-
-Group starter prompts by use case category for better user navigation.
-
-**Category Structure:**
-Define categories like "Getting Started", "Account Help", "Product Information", and "Technical Support". Assign 2-3 prompts to each category. Display categories as tabs or expandable sections. Allow users to browse categories to find relevant prompts.
-
-**Configuration Format:**
-Use a JSON object with category names as keys and prompt arrays as values. Store in environment variable or separate JSON configuration file. Example: `{"Support": ["Track order", "Return item"], "Sales": ["View products", "Request quote"]}`
-
-**UI Implementation:**
-Create a tabbed interface or accordion layout for categories. Apply active state styling to the selected category. Lazy-load category prompts to improve initial render performance. Remember the user's last-selected category for returning visitors.
-
-### Analytics and Optimization
-
-Track starter prompt performance to optimize engagement.
-
-**Metrics to Track:**
-Click-through rate for each prompt (clicks / impressions). Conversion rate from prompt click to successful conversation. Time from page load to first interaction (with vs without prompts). Which prompts lead to highest user satisfaction scores.
-
-**Implementation:**
-Use the Widget SDK's `VirtualAgent.track()` method to send events. Track `starter_prompt_shown` when prompts are displayed. Track `starter_prompt_clicked` with the prompt text as a property. Include prompt position and category in event properties. Send events to your analytics platform (Mixpanel, Google Analytics, etc.).
-
-**Optimization Loop:**
-Review analytics monthly to identify low-performing prompts. A/B test different prompt variations to find optimal phrasing. Update prompts based on seasonal trends or new features. Remove prompts with <5% click-through rate. Promote high-performing prompts to more prominent positions.
-
-### Best Practices
-
-**Writing Effective Prompts:**
-- Use action-oriented language ("Track my order" not "Order tracking")
-- Keep prompts concise (5-8 words maximum)
-- Make prompts specific rather than generic
-- Address common user pain points
-- Use natural, conversational language
-- Avoid jargon or technical terms
-
-**Visual Design:**
-- Limit to 3-4 prompts to avoid overwhelming users
-- Use consistent sizing and spacing
-- Ensure sufficient color contrast for accessibility
-- Provide clear hover and focus states
-- Make prompts visually distinct from messages
-- Test on mobile devices for touch usability
-
-**User Experience:**
-- Show prompts immediately on load (no delay)
-- Hide prompts after first user message
-- Restore prompts when conversation is reset
-- Don't auto-send prompts (require explicit click)
-- Provide visual feedback on click
-- Ensure prompts work with keyboard navigation
-
-### Integration with Widget SDK
-
-Extend the Widget SDK to support programmatic prompt management.
-
-**New SDK Methods:**
-Add `VirtualAgent.showSuggestions(prompts)` to display custom suggestions dynamically. Add `VirtualAgent.hideSuggestions()` to remove suggestions from view. Add `VirtualAgent.setSuggestions(prompts)` to update the default starter prompts. Support callback parameter to track which suggestion was clicked.
-
-**Example Usage:**
-```javascript
-// Show custom suggestions after specific user action
-VirtualAgent.showSuggestions([
-  'Learn more about this feature',
-  'See a demo',
-  'Contact support'
-]);
-
-// Track which suggestion was clicked
-VirtualAgent.on('suggestion-clicked', (data) => {
-  console.log('User clicked:', data.suggestion);
-});
-```
-
-**Implementation Location:**
-Add methods to the Widget SDK in `/svelte-wrapper/src/lib/utils/widget-api.ts`. Use postMessage to communicate suggestions to the iframe. Store suggestions in the widget's Svelte store. Render suggestions using the `StarterPrompts.tsx` component.
-
-
-## Architecture
-
-### System Architecture Overview
-
-```
-┌─────────────────────────────────────┐
-│         User Interface              │
-│   - Chat Components (TailwindCSS)   │
-│   - Message Bubbles                 │
-│   - SVG Backgrounds                 │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      Next.js 15 App Router          │
-│   - Server Components               │
-│   - API Routes (SSE Streaming)      │
-│   - Middleware (CORS, Rate Limit)   │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│   Environment Configuration         │
-│   - System Prompts                  │
-│   - UI Customization                │
-│   - Theme & Branding                │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      Business Logic Layer           │
-│   - Rate Limiting                   │
-│   - Input Validation                │
-│   - Context Management              │
-└──────────────┬──────────────────────┘
-               │
-         ┌─────┴─────┐
-         │           │
-┌────────▼────┐ ┌────▼──────────┐
-│  LangChain  │ │ Vector DB     │
-│  - Claude   │ │ (Qdrant)      │
-│  - OpenAI   │ │ - Embeddings  │
-│  - Gemini   │ │ - RAG         │
-└─────────────┘ └───────────────┘
-```
-
-### RAG Architecture
-
-**Vector Database Integration:**
-- Qdrant for high-performance vector storage
-- SentenceTransformer embeddings for semantic representation
-- Hybrid search patterns with metadata filtering
-- Intelligent document chunking strategies
-
-**Retrieval Pipeline:**
-1. User Query → Embedding Generation
-2. Vector Similarity Search (top-k results)
-3. Optional Reranking for relevance
-4. Context Assembly from retrieved documents
-5. LLM Generation with context
-
-**Key Components:**
-- `/src/lib/vector-db/` - Vector database operations
-- `/src/lib/embeddings/` - Embedding model initialization
-- `/src/lib/retrieval/` - Query processing and reranking
-- `/src/lib/langchain/rag-chains.ts` - RAG-specific chains
-
-### Agentic Workflows
-
-**LangGraph State Management:**
-- Multi-step agent workflows with persistent state
-- PostgreSQL checkpointing for state persistence
-- Tool integration for extending capabilities
-- Conditional routing based on agent decisions
-
-**ReAct Agent Pattern:**
-- Agent that plans, executes tools, and reflects on results
-- Extensible tool system for custom capabilities
-- Human-in-the-loop approval gates (optional)
-- Automatic error recovery and fallback mechanisms
-
-**Key Components:**
-- `/src/lib/langchain/graph-manager.ts` - LangGraph orchestration
-- `/src/lib/langchain/agents/` - Agent definitions
-- `/src/lib/langchain/tools/` - Tool implementations
-- `/src/lib/langchain/state/` - State schemas
-- `/src/lib/langchain/persistence/` - PostgreSQL checkpointing
-
-### Streaming Response Architecture
-
-**Server-Sent Events (SSE):**
-- Unidirectional streaming from server to client
-- Built-in reconnection with Last-Event-ID
-- HTTP-based for firewall/proxy compatibility
-- Native browser EventSource API support
-- Real-time token-by-token delivery
-
-**Request/Response Flow:**
-1. Client sends POST to `/api/chat`
-2. Server initiates SSE connection
-3. Tokens stream in real-time
-4. Connection closes after `[DONE]`
-5. Automatic error handling and retry
 
 ## Implementation Guide
 
@@ -1241,6 +1335,8 @@ Add methods to the Widget SDK in `/svelte-wrapper/src/lib/utils/widget-api.ts`. 
 - Trigger fetch on message change
 - Return streaming state and response for UI rendering
 
+
+
 ## Development
 
 ### Next.js Agent Development
@@ -1285,102 +1381,7 @@ Both projects enforce strict code quality standards:
 - TypeScript type checking
 - Svelte component validation (for svelte-wrapper)
 
-## Deployment
 
-### Production Deployment Checklist
-
-**Environment Variables:**
-- [ ] All LLM API keys configured
-- [ ] Vector database URL and credentials
-- [ ] PostgreSQL connection string
-- [ ] SSE endpoint configuration and CORS
-- [ ] Authentication secrets
-- [ ] CORS allowed origins
-
-**Database Setup:**
-- [ ] PostgreSQL migrations run
-- [ ] Qdrant collections created
-- [ ] Index optimization completed
-- [ ] Backup strategy configured
-
-**Security:**
-- [ ] Rate limiting enabled
-- [ ] Input validation on all endpoints
-- [ ] CORS properly configured
-- [ ] API keys stored in secure secrets manager
-- [ ] HTTPS enforced in production
-
-**Performance:**
-- [ ] Vector database indexed
-- [ ] Connection pooling configured
-- [ ] Caching strategy implemented
-- [ ] CDN configured for widget assets
-
-**Monitoring:**
-- [ ] Health check endpoints tested
-- [ ] Logging configured and centralized
-- [ ] Error tracking service integrated
-- [ ] Performance metrics collected
-
-### Deployment Options
-
-**Cloud-Agnostic Containerized Deployment:**
-- AWS ECS / Fargate
-- GCP Cloud Run
-- Azure Container Apps
-- Any Kubernetes cluster
-
-**Serverless Deployment:**
-- Vercel (recommended for Next.js)
-- Netlify
-- AWS Lambda with API Gateway
-
-**Traditional Deployment:**
-- VPS / VM with Docker
-- Docker Compose for multi-service setup
-
-## Technology Stack
-
-### Next.js Agent (Core AI Application)
-- **Framework**: Next.js 15 (App Router) with React 19
-- **Language**: TypeScript (full type safety)
-- **LLM Orchestration**:
-  - LangChain for LLM abstraction
-  - LangGraph for agent workflows
-  - `@langchain/anthropic` for Claude
-  - `@langchain/openai` for GPT
-  - `@langchain/google-genai` for Gemini
-- **Vector Database**: Qdrant for embeddings
-- **Embeddings**: SentenceTransformer models
-- **Database**: PostgreSQL for relational data
-- **Streaming**: Server-Sent Events (SSE)
-- **Styling**: TailwindCSS only (strictly enforced)
-- **State Management**: React hooks, Zustand, LangGraph
-- **Validation**: Zod for runtime type validation
-- **Authentication**: NextAuth.js with OAuth
-- **Code Quality**: ESLint, Prettier, Husky, lint-staged
-- **Testing**: Jest, React Testing Library
-- **Build**: Next.js Turbopack
-
-### SvelteJS Widget (Embeddable Integration)
-- **Framework**: Svelte 5 (compiled to standalone widget)
-- **Language**: TypeScript
-- **Purpose**: Lightweight UI shell (button, dialog, iframe)
-- **Styling**: TailwindCSS only (strictly enforced)
-- **Build**: Vite 6 for fast bundling
-- **State**: Svelte stores for widget state
-- **Communication**: postMessage API for iframe
-- **Code Quality**: ESLint, Prettier, svelte-check, Husky
-- **Bundle**: Compiles to single `widget.js` file
-
-### Infrastructure & DevOps
-- **Containerization**: Docker with multi-stage builds
-- **Deployment**: Cloud-agnostic (AWS, GCP, Azure, Vercel, etc.)
-- **Logging**: Structured logging with cloud-agnostic aggregation
-- **Monitoring**: Health check endpoints for any monitoring service
-- **Environment**: Multi-environment configuration (.env files)
-- **Version Control**: Git with conventional commits
-- **CI/CD Ready**: GitHub Actions, GitLab CI, or any CI/CD platform
 
 ## API Reference
 
@@ -1483,6 +1484,8 @@ VirtualAgent.open();
 VirtualAgent.close();
 ```
 
+
+
 ## Security
 
 ### Best Practices
@@ -1507,6 +1510,64 @@ RATE_LIMIT_WINDOW=60
 RATE_LIMIT_ENABLED=true
 ```
 
+
+
+## Deployment
+
+### Production Deployment Checklist
+
+**Environment Variables:**
+- [ ] All LLM API keys configured
+- [ ] Vector database URL and credentials
+- [ ] PostgreSQL connection string
+- [ ] SSE endpoint configuration and CORS
+- [ ] Authentication secrets
+- [ ] CORS allowed origins
+
+**Database Setup:**
+- [ ] PostgreSQL migrations run
+- [ ] Qdrant collections created
+- [ ] Index optimization completed
+- [ ] Backup strategy configured
+
+**Security:**
+- [ ] Rate limiting enabled
+- [ ] Input validation on all endpoints
+- [ ] CORS properly configured
+- [ ] API keys stored in secure secrets manager
+- [ ] HTTPS enforced in production
+
+**Performance:**
+- [ ] Vector database indexed
+- [ ] Connection pooling configured
+- [ ] Caching strategy implemented
+- [ ] CDN configured for widget assets
+
+**Monitoring:**
+- [ ] Health check endpoints tested
+- [ ] Logging configured and centralized
+- [ ] Error tracking service integrated
+- [ ] Performance metrics collected
+
+### Deployment Options
+
+**Cloud-Agnostic Containerized Deployment:**
+- AWS ECS / Fargate
+- GCP Cloud Run
+- Azure Container Apps
+- Any Kubernetes cluster
+
+**Serverless Deployment:**
+- Vercel (recommended for Next.js)
+- Netlify
+- AWS Lambda with API Gateway
+
+**Traditional Deployment:**
+- VPS / VM with Docker
+- Docker Compose for multi-service setup
+
+
+
 ## Contributing
 
 1. Fork the repository
@@ -1522,6 +1583,8 @@ RATE_LIMIT_ENABLED=true
 - Use TailwindCSS for all styling
 - Write tests for new features
 - Update documentation as needed
+
+
 
 ## Changelog
 
@@ -1539,15 +1602,7 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes, updates, and
 
 For complete version history and detailed changes, please refer to the [CHANGELOG.md](CHANGELOG.md) file.
 
-## License
 
-[MIT License](LICENSE)
-
-## Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Contact: support@your-domain.com
 
 ## Roadmap
 
@@ -1561,6 +1616,22 @@ For issues and questions:
 - [ ] Enhanced tool ecosystem (more pre-built tools)
 - [ ] Plugin system for custom behaviors
 - [ ] Mobile app (React Native)
+
+
+
+## Support
+
+For issues and questions:
+- Open an issue on GitHub
+- Contact: support@your-domain.com
+
+
+
+## License
+
+[MIT License](LICENSE)
+
+
 
 ## Acknowledgments
 
