@@ -10,6 +10,10 @@ A production-ready boilerplate template for building sophisticated LLM applicati
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
 - [UI Components](#ui-components)
+- [Hooks System](#hooks-system)
+- [Widget SDK](#widget-sdk)
+- [Enhanced Security Model](#enhanced-security-model)
+- [Starter Prompts](#starter-prompts)
 - [Architecture](#architecture)
 - [Implementation Guide](#implementation-guide)
 - [Development](#development)
@@ -18,6 +22,7 @@ A production-ready boilerplate template for building sophisticated LLM applicati
 - [API Reference](#api-reference)
 - [Security](#security)
 - [Contributing](#contributing)
+- [Changelog](#changelog)
 
 ## Overview
 
@@ -194,6 +199,7 @@ virtual-agent/
 │   │   ├── app/                       # Next.js 15 App Router
 │   │   │   ├── api/                   # API Routes
 │   │   │   │   ├── chat/route.ts      # Chat endpoint (SSE streaming)
+│   │   │   │   ├── session/route.ts   # Session token management
 │   │   │   │   ├── health/route.ts    # Health check endpoint
 │   │   │   │   ├── reset/route.ts     # Reset conversation endpoint
 │   │   │   │   └── config/route.ts    # Get agent configuration
@@ -210,6 +216,7 @@ virtual-agent/
 │   │   │   │   ├── MessageBubble.tsx  # Individual message bubble
 │   │   │   │   ├── MessageInput.tsx   # User input field
 │   │   │   │   ├── ChatBackground.tsx # SVG background component
+│   │   │   │   ├── StarterPrompts.tsx # Suggested questions component
 │   │   │   │   └── TypingIndicator.tsx # Typing indicator
 │   │   │   ├── ui/                    # Reusable UI components
 │   │   │   │   ├── Button.tsx
@@ -238,6 +245,12 @@ virtual-agent/
 │   │   │   └── db/                    # Database
 │   │   │       ├── client.ts
 │   │   │       └── schema.ts
+│   │   ├── middleware/                # Middleware/Plugin hooks
+│   │   │   ├── pre-message/           # Pre-message hooks
+│   │   │   ├── post-message/          # Post-message hooks
+│   │   │   ├── on-error/              # Error handling hooks
+│   │   │   ├── on-tool-call/          # Tool invocation hooks
+│   │   │   └── index.ts               # Hook registration
 │   │   ├── types/                     # TypeScript types
 │   │   ├── hooks/                     # React hooks
 │   │   │   ├── useChat.ts
@@ -342,6 +355,9 @@ AGENT_GREETING="Hello! How can I help you today?"
 AGENT_TAGLINE="Always here to help"
 USE_CASE="customer_support"
 
+# Starter Prompts (JSON array of suggested questions)
+STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
+
 # =========================
 # UI Customization
 # =========================
@@ -376,8 +392,18 @@ WIDGET_SIZE="medium"
 ENABLE_MINIMIZE=true
 
 # =========================
-# Security
+# Security & Authentication
 # =========================
+# Token-based Authentication
+JWT_SECRET="your-secure-random-secret-minimum-32-characters"
+SESSION_TOKEN_TTL=1800                # Token TTL in seconds (30 minutes)
+SESSION_REFRESH_THRESHOLD=180          # Refresh tokens 3 minutes before expiry
+ALLOWED_DOMAINS="localhost:3000,yourdomain.com,*.yourdomain.com"
+ENABLE_TOKEN_ROTATION=true
+MAX_SESSIONS_PER_USER=5
+SESSION_AUDIT_ENABLED=true
+
+# Rate Limiting & CORS
 RATE_LIMIT_REQUESTS=10
 RATE_LIMIT_WINDOW=60
 ALLOWED_ORIGINS="http://localhost:3000,https://yourdomain.com"
@@ -590,6 +616,468 @@ Apply theme colors using Tailwind classes:
 - Container backgrounds: `bg-background`
 
 This approach ensures consistent theming across the application by referencing the extended Tailwind theme values instead of hardcoding colors. All typography elements use the appropriate semantic color (primary, secondary, muted, inverse) based on their importance and context.
+
+## Hooks System
+
+The Hooks System provides a middleware/plugin architecture for intercepting and transforming agent behavior at key points in the request lifecycle. This allows you to extend functionality without modifying core agent code.
+
+### Hook Types
+
+The system supports four primary hook types:
+
+**Pre-Message Hooks** - Execute before messages are sent to the LLM. Use cases include input validation, content filtering, user authentication checks, rate limiting enforcement, message preprocessing and augmentation, and adding context from external systems.
+
+**Post-Message Hooks** - Execute after the LLM generates a response but before sending to the client. Use cases include response filtering for sensitive data, content moderation, adding citations or sources, logging and analytics, response transformation, and custom formatting.
+
+**On-Error Hooks** - Execute when errors occur during agent processing. Use cases include custom error messages, fallback responses, error logging to monitoring services, user notification, graceful degradation, and retry logic.
+
+**On-Tool-Call Hooks** - Execute before and after agent tool invocations. Use cases include tool usage authorization, parameter validation, result transformation, tool call logging, cost tracking, and custom tool routing.
+
+### Hook File Structure
+
+Hooks are organized in the `/nextjs-agent/src/hooks/` directory with the following structure:
+
+```
+src/hooks/
+├── pre-message/
+│   ├── rate-limiter.ts
+│   ├── profanity-filter.ts
+│   └── context-enricher.ts
+├── post-message/
+│   ├── citation-adder.ts
+│   ├── pii-filter.ts
+│   └── analytics.ts
+├── on-error/
+│   ├── friendly-error.ts
+│   └── error-logger.ts
+├── on-tool-call/
+│   ├── tool-authorizer.ts
+│   └── cost-tracker.ts
+└── index.ts
+```
+
+### Creating Custom Hooks
+
+Each hook is a TypeScript module that exports an async function with a specific signature.
+
+**Pre-Message Hook Interface:**
+- Input: User message string, optional user context object
+- Output: Modified message string or original if no changes
+- Can throw errors to prevent message processing
+- Executes in registration order
+
+**Post-Message Hook Interface:**
+- Input: LLM response string, original user message, optional metadata
+- Output: Modified response string or original if no changes
+- Can add metadata to be included in client response
+- Executes in registration order
+
+**On-Error Hook Interface:**
+- Input: Error object, user message, optional context
+- Output: Custom error response object with message and optional recovery action
+- Can transform error into user-friendly messages
+- First hook to return a response wins
+
+**On-Tool-Call Hook Interface:**
+- Input: Tool name, tool arguments object, optional execution context
+- Output: Modified arguments or validation result
+- Can prevent tool execution by throwing error
+- Executes before tool is invoked
+
+### Hook Registration
+
+Register hooks in `/nextjs-agent/src/hooks/index.ts` by importing hook functions and adding them to the appropriate arrays (preMessageHooks, postMessageHooks, onErrorHooks, onToolCallHooks). Hooks execute in array order, so order matters for dependencies.
+
+### Hook Execution Order
+
+The agent processes hooks in the following sequence: Pre-Message hooks execute first in registration order, then the message is sent to the LLM. If tools are called, On-Tool-Call hooks execute before each tool invocation. After LLM generates response, Post-Message hooks execute in registration order. If any error occurs, On-Error hooks execute until one returns a response.
+
+### Implementation Guidelines
+
+**Performance Considerations:**
+- Keep hook execution fast (under 100ms recommended)
+- Use async operations efficiently
+- Consider caching for expensive operations
+- Avoid blocking I/O in critical path
+
+**Error Handling:**
+- Always catch and handle errors within hooks
+- Provide meaningful error messages
+- Consider graceful degradation
+- Log errors for debugging
+
+**Best Practices:**
+- Keep hooks focused on single responsibility
+- Make hooks reusable across different agents
+- Use environment variables for configuration
+- Document hook behavior clearly
+- Write unit tests for hook logic
+
+### Example Use Cases
+
+**Content Moderation:** Use Pre-Message hooks to filter inappropriate content before LLM processing. Use Post-Message hooks to ensure agent responses meet content guidelines.
+
+**Analytics and Monitoring:** Use Post-Message hooks to log conversation metrics. Use On-Tool-Call hooks to track tool usage patterns and costs.
+
+**Personalization:** Use Pre-Message hooks to enrich messages with user preferences. Use Post-Message hooks to format responses based on user settings.
+
+**Security and Compliance:** Use Pre-Message hooks for authentication and authorization. Use Post-Message hooks to redact PII from responses.
+
+**Error Recovery:** Use On-Error hooks to provide friendly error messages. Use On-Error hooks to implement automatic retry logic.
+
+## Widget SDK
+
+The Widget SDK provides a comprehensive JavaScript API for controlling the embedded chat widget, tracking user interactions, and customizing behavior at runtime.
+
+### Core API Methods
+
+**Initialization:**
+
+The `VirtualAgent.init(config)` method initializes the widget with configuration options. It must be called before any other methods. Configuration includes embedUrl (required), position, primaryColor, agentName, and other optional settings. Returns a Promise that resolves when widget is ready.
+
+**Visibility Control:**
+
+The `VirtualAgent.open()` method opens the chat dialog and optionally accepts a callback parameter that executes when dialog is fully opened. The `VirtualAgent.close()` method closes the chat dialog and also accepts an optional callback. The `VirtualAgent.toggle()` method toggles between open and closed states. The `VirtualAgent.isOpen()` method returns a boolean indicating current dialog state.
+
+**Configuration Updates:**
+
+The `VirtualAgent.updateConfig(partialConfig)` method updates widget configuration at runtime. Only specified properties are updated, others remain unchanged. Updates are applied immediately without reloading the widget.
+
+**User Identification:**
+
+The `VirtualAgent.identify(userId, userInfo)` method associates a user ID with the current session. The userInfo parameter is optional and can include name, email, avatar URL, and custom metadata. This enables personalized experiences and conversation history.
+
+**Conversation Management:**
+
+The `VirtualAgent.reset()` method clears current conversation and starts fresh. The `VirtualAgent.prefill(message)` method pre-fills the input field with a message (useful for suggested questions). The `VirtualAgent.send(message)` method sends a message programmatically without user interaction.
+
+**Event Listeners:**
+
+The `VirtualAgent.on(eventName, callback)` method registers event listeners. Supported events include 'open' (dialog opened), 'close' (dialog closed), 'message-sent' (user sent message), 'message-received' (agent responded), 'error' (error occurred), and 'ready' (widget initialized). The `VirtualAgent.off(eventName, callback)` method removes previously registered event listeners.
+
+**Locale and Internationalization:**
+
+The `VirtualAgent.setLocale(locale)` method sets the widget language (e.g., 'en', 'es', 'fr'). The widget automatically translates UI elements based on locale. Supported locales depend on your i18n configuration.
+
+**Analytics Integration:**
+
+The `VirtualAgent.track(eventName, properties)` method sends custom analytics events. Useful for tracking user engagement, feature usage, and conversion metrics. Integrates with your analytics platform (Google Analytics, Mixpanel, Segment, etc.).
+
+**Widget State:**
+
+The `VirtualAgent.getState()` method returns current widget state including conversation history, user info, configuration, and connection status. The `VirtualAgent.destroy()` method completely removes the widget from the page and cleans up all event listeners.
+
+### Event System
+
+The Widget SDK uses a standard event emitter pattern for real-time updates.
+
+**Event Handler Pattern:**
+
+Register listeners using the on method with event name and callback function. Callbacks receive an event object containing relevant data. Remove listeners using the off method when no longer needed to prevent memory leaks.
+
+**Common Events:**
+
+The 'ready' event fires when widget is fully initialized and ready for use. The 'open' event fires when dialog opens. The 'close' event fires when dialog closes. The 'message-sent' event fires when user sends a message, with data containing message text and timestamp. The 'message-received' event fires when agent responds, with data containing response text and timestamp. The 'error' event fires when errors occur, with data containing error message and code. The 'connection-change' event fires when connection status changes, with data indicating connected/disconnected state.
+
+### Advanced Configuration
+
+**Custom Styling:**
+
+Beyond basic color customization, you can inject custom CSS using the customStyles configuration option. This accepts CSS string that will be injected into the widget iframe. Use this for advanced theming, custom fonts, or brand-specific styling.
+
+**Custom Triggers:**
+
+The widget can be triggered by custom events beyond the default chat button. Use the hideDefaultButton configuration option to hide the built-in button, then call VirtualAgent.open() from your own UI elements.
+
+**Session Management:**
+
+The widget automatically persists conversation state using localStorage. Configure session persistence using the persistConversation option (defaults to true). Clear sessions manually using VirtualAgent.reset() method.
+
+**Security Options:**
+
+Configure CORS and CSP settings using the security configuration object. Options include allowedOrigins array, enableCSP boolean, and nonce for inline scripts. These settings help protect against XSS and other security vulnerabilities.
+
+### Integration Patterns
+
+**React Integration:**
+
+Create a React component that initializes the widget in useEffect hook. Clean up on unmount using VirtualAgent.destroy(). Use state to control widget visibility and configuration.
+
+**Vue Integration:**
+
+Initialize widget in mounted lifecycle hook. Use reactive refs to bind widget state to Vue component state. Clean up in beforeUnmount hook.
+
+**Vanilla JavaScript:**
+
+Initialize widget after DOM content loaded event. Use event delegation for custom trigger buttons. No framework-specific cleanup needed.
+
+**Analytics Integration:**
+
+Use the track method to send events to your analytics platform. Common events to track include widget opened, message sent, conversation completed, and user identified. Integrate with Google Analytics, Mixpanel, Segment, or custom analytics.
+
+### Best Practices
+
+**Performance:**
+- Initialize widget only once per page load
+- Use event delegation instead of multiple listeners
+- Debounce frequent configuration updates
+- Lazy load widget on user interaction for better initial page load
+
+**User Experience:**
+- Provide visual feedback when widget is loading
+- Handle errors gracefully with user-friendly messages
+- Prefill common questions for quick starts
+- Respect user's preferred language and locale
+
+**Security:**
+- Never expose API keys in frontend code
+- Validate user inputs before sending
+- Use identify method to associate conversations securely
+- Configure CORS properly to prevent unauthorized access
+
+**Accessibility:**
+- Ensure widget is keyboard navigable
+- Provide ARIA labels for screen readers
+- Support high contrast modes
+- Test with assistive technologies
+
+## Enhanced Security Model
+
+The Virtual Agent implements a token-based security model inspired by OpenAI's ChatKit, ensuring API keys remain secure on the server while providing seamless client authentication.
+
+### Client Token System
+
+Instead of exposing API keys in the frontend, the system uses short-lived client tokens generated server-side.
+
+**Token Lifecycle:**
+The backend generates JWT tokens with 15-30 minute expiration when clients request sessions. These tokens are cryptographically signed and include user identification and permission scopes. The widget receives the token and uses it for all API communications. Before expiration, the widget automatically requests a new token using the refresh mechanism.
+
+**Security Benefits:**
+API keys never leave the server environment, reducing exposure risk. Short-lived tokens minimize damage if compromised. Token rotation provides audit trails for security monitoring. Revocation is immediate without changing API keys. Per-user scopes enable fine-grained permission control.
+
+### Session Management Endpoint
+
+Create a dedicated session endpoint that generates and refreshes client tokens.
+
+**Endpoint Structure:**
+The POST endpoint at `/api/session` accepts optional existing token for refresh. It validates the request origin against domain allowlist. The server generates a new JWT token with user context, expiration timestamp, and permission scopes. It returns the client secret token with expiration time and session metadata.
+
+**Implementation Location:**
+Create the endpoint at `/nextjs-agent/src/app/api/session/route.ts` using Next.js 15 App Router patterns. Use the `jsonwebtoken` library for token generation and validation. Store session metadata in PostgreSQL for audit trails. Include rate limiting to prevent token generation abuse.
+
+### Domain Allowlist
+
+Protect against unauthorized widget usage by validating request origins.
+
+**Configuration:**
+Add `ALLOWED_DOMAINS` to environment variables as a comma-separated list. The middleware checks the request Origin header against the allowlist. Reject requests from unauthorized domains with 403 Forbidden status. Support wildcard patterns for subdomain flexibility (e.g., `*.yourdomain.com`).
+
+**Implementation Approach:**
+Create domain validation middleware in `/nextjs-agent/src/middleware.ts`. Parse the Origin header from incoming requests. Compare against the configured allowlist with pattern matching. Log rejected requests for security monitoring. Allow localhost and development URLs in non-production environments.
+
+### Token Refresh Mechanism
+
+Implement automatic token refresh in the widget to maintain seamless user experience.
+
+**Client-Side Logic:**
+The widget SDK includes a `getClientSecret()` method that accepts an existing token parameter. When the current token approaches expiration (2-3 minutes before), automatically request a new token. The server validates the existing token and issues a fresh one if valid. The widget updates its internal token and continues operation without interruption.
+
+**Frontend Implementation:**
+Extend the Widget SDK initialization to include token management. Add a token expiration monitor that checks remaining validity. Implement exponential backoff for failed refresh attempts. Store tokens securely in memory (not localStorage) to prevent XSS access. Clear tokens immediately when the widget is closed or destroyed.
+
+### Environment Variables
+
+Add security-related configuration to the environment variables section.
+
+**Required Variables:**
+- `JWT_SECRET` - Secret key for signing tokens (minimum 32 characters)
+- `SESSION_TOKEN_TTL` - Token time-to-live in seconds (default: 1800 for 30 minutes)
+- `ALLOWED_DOMAINS` - Comma-separated list of authorized domains
+- `SESSION_REFRESH_THRESHOLD` - Seconds before expiration to trigger refresh (default: 180)
+
+**Optional Security Variables:**
+- `ENABLE_TOKEN_ROTATION` - Rotate tokens on each refresh (default: true)
+- `MAX_SESSIONS_PER_USER` - Limit concurrent sessions per user (default: 5)
+- `SESSION_AUDIT_ENABLED` - Log session events to database (default: true)
+
+### Database Schema
+
+Store session metadata for audit trails and security monitoring.
+
+**Session Table Structure:**
+Create a sessions table with columns for session_id (UUID primary key), user_id (optional identifier), client_token_hash (hashed token for lookup), created_at (session start timestamp), expires_at (token expiration time), last_refreshed_at (most recent refresh), ip_address (client IP for security), user_agent (browser/device info), and is_revoked (manual revocation flag).
+
+**Benefits:**
+Track active sessions per user for security limits. Provide audit trails for compliance requirements. Enable manual session revocation for compromised accounts. Monitor suspicious patterns like excessive refresh attempts. Support analytics on session duration and usage patterns.
+
+### Best Practices
+
+**Token Security:**
+- Never log complete tokens (only log hashed versions)
+- Use cryptographically secure random values for JWT secrets
+- Rotate JWT_SECRET periodically in production
+- Set appropriate token TTL based on risk tolerance
+- Implement token blacklisting for logout functionality
+
+**Domain Security:**
+- Keep ALLOWED_DOMAINS as restrictive as possible
+- Use HTTPS-only in production to prevent token interception
+- Implement Content Security Policy (CSP) headers
+- Monitor and alert on requests from unauthorized domains
+- Regularly audit domain allowlist for outdated entries
+
+**Session Monitoring:**
+- Track failed authentication attempts
+- Alert on unusual session patterns (rapid creation, geographic anomalies)
+- Implement rate limiting on session creation endpoint
+- Log all token refresh events for forensics
+- Set up automated session cleanup for expired tokens
+
+### Migration from Basic Auth
+
+If migrating from basic authentication, follow this approach:
+
+**Phase 1 - Dual Support:**
+Support both API key and token-based authentication temporarily. Add a feature flag to gradually roll out token auth. Monitor both authentication methods in parallel. Identify and migrate high-value users first.
+
+**Phase 2 - Token Enforcement:**
+Deprecate API key authentication with advance notice. Enforce token-based auth for all new sessions. Provide migration guides and support for existing integrations. Set sunset date for legacy authentication.
+
+**Phase 3 - Cleanup:**
+Remove API key authentication code paths. Update documentation to reflect token-only approach. Audit codebase for any remaining API key references. Enhance monitoring with token-specific metrics.
+
+## Starter Prompts
+
+Starter Prompts provide users with suggested questions or actions when the chat interface first loads, reducing friction and guiding users toward valuable interactions.
+
+### Purpose and Benefits
+
+**Reduce Cognitive Load:**
+Users often don't know what to ask or what the agent can do. Starter prompts provide immediate examples of capabilities. They eliminate the "blank canvas" problem of empty chat interfaces. They guide users toward high-value use cases quickly.
+
+**Improve Engagement:**
+Users are more likely to interact when presented with clear options. Suggested questions have higher conversion rates than empty states. They reduce time-to-first-message significantly. They help users discover features they might not know about.
+
+**Use Case Discovery:**
+Showcase the agent's capabilities through examples. Highlight unique or powerful features. Guide users through common workflows. Educate users on what types of questions work best.
+
+### Configuration
+
+Starter prompts are configured via environment variables as JSON arrays.
+
+**Environment Variable Structure:**
+Add `STARTER_PROMPTS` to your `.env.local` file as a JSON-encoded array of strings. Each string represents one suggested question or action. Limit to 3-4 prompts for optimal visual design. Update prompts based on user analytics and feedback.
+
+**Example Configuration:**
+```env
+STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
+```
+
+**Category-Based Prompts:**
+For more sophisticated implementations, structure prompts by category using JSON objects with category and prompts fields. This allows grouping related suggestions under category headers like "Support", "Sales", "Technical".
+
+### UI Component Implementation
+
+Create a `StarterPrompts.tsx` component to display suggestions in the chat interface.
+
+**Component Location:**
+Place the component at `/nextjs-agent/src/components/chat/StarterPrompts.tsx`. Import and render it in `ChatInterface.tsx` when the message list is empty. Hide the component once the user sends their first message. Re-show prompts when conversation is reset.
+
+**Visual Design:**
+Display prompts as clickable chips or cards arranged in a grid layout. Use PRIMARY_COLOR for hover states and selection feedback. Include subtle icons to indicate interactivity (arrow, sparkle, or chat bubble). Apply smooth hover transitions and click animations for tactile feedback. Ensure mobile-responsive layout with proper touch targets (minimum 44x44px).
+
+**Styling Approach:**
+Use Tailwind utility classes exclusively: `bg-secondary/10`, `hover:bg-primary`, `text-primary`, `rounded-lg`, `p-3`, `cursor-pointer`. Apply flex or grid layout for responsive arrangement. Add transition classes for smooth interactions. Use TEXT_SECONDARY color for prompt text with TEXT_PRIMARY on hover.
+
+### Contextual Suggestions
+
+Beyond static starter prompts, implement dynamic suggestions based on conversation context.
+
+**Post-Message Suggestions:**
+Use a Post-Message hook to analyze agent responses and generate relevant follow-up questions. The LLM can suggest 2-3 contextual next questions based on the current conversation. Display these as chips below the agent's message. Track which suggestions users click to improve relevance over time.
+
+**Implementation Pattern:**
+Create a post-message hook at `/nextjs-agent/src/middleware/post-message/suggestion-generator.ts`. Use the LLM with a specific prompt asking for follow-up suggestions. Return suggestions as metadata attached to the agent response. Render suggestions in `MessageBubble.tsx` as interactive buttons. Send clicked suggestions as new user messages.
+
+**Suggestion Prompt Template:**
+Ask the LLM: "Based on this conversation, suggest 2-3 relevant follow-up questions the user might ask. Return only the questions as a JSON array." Parse the LLM response and validate the JSON structure. Fall back to empty array if parsing fails. Cache suggestions to avoid redundant LLM calls.
+
+### Category Organization
+
+Group starter prompts by use case category for better user navigation.
+
+**Category Structure:**
+Define categories like "Getting Started", "Account Help", "Product Information", and "Technical Support". Assign 2-3 prompts to each category. Display categories as tabs or expandable sections. Allow users to browse categories to find relevant prompts.
+
+**Configuration Format:**
+Use a JSON object with category names as keys and prompt arrays as values. Store in environment variable or separate JSON configuration file. Example: `{"Support": ["Track order", "Return item"], "Sales": ["View products", "Request quote"]}`
+
+**UI Implementation:**
+Create a tabbed interface or accordion layout for categories. Apply active state styling to the selected category. Lazy-load category prompts to improve initial render performance. Remember the user's last-selected category for returning visitors.
+
+### Analytics and Optimization
+
+Track starter prompt performance to optimize engagement.
+
+**Metrics to Track:**
+Click-through rate for each prompt (clicks / impressions). Conversion rate from prompt click to successful conversation. Time from page load to first interaction (with vs without prompts). Which prompts lead to highest user satisfaction scores.
+
+**Implementation:**
+Use the Widget SDK's `VirtualAgent.track()` method to send events. Track `starter_prompt_shown` when prompts are displayed. Track `starter_prompt_clicked` with the prompt text as a property. Include prompt position and category in event properties. Send events to your analytics platform (Mixpanel, Google Analytics, etc.).
+
+**Optimization Loop:**
+Review analytics monthly to identify low-performing prompts. A/B test different prompt variations to find optimal phrasing. Update prompts based on seasonal trends or new features. Remove prompts with <5% click-through rate. Promote high-performing prompts to more prominent positions.
+
+### Best Practices
+
+**Writing Effective Prompts:**
+- Use action-oriented language ("Track my order" not "Order tracking")
+- Keep prompts concise (5-8 words maximum)
+- Make prompts specific rather than generic
+- Address common user pain points
+- Use natural, conversational language
+- Avoid jargon or technical terms
+
+**Visual Design:**
+- Limit to 3-4 prompts to avoid overwhelming users
+- Use consistent sizing and spacing
+- Ensure sufficient color contrast for accessibility
+- Provide clear hover and focus states
+- Make prompts visually distinct from messages
+- Test on mobile devices for touch usability
+
+**User Experience:**
+- Show prompts immediately on load (no delay)
+- Hide prompts after first user message
+- Restore prompts when conversation is reset
+- Don't auto-send prompts (require explicit click)
+- Provide visual feedback on click
+- Ensure prompts work with keyboard navigation
+
+### Integration with Widget SDK
+
+Extend the Widget SDK to support programmatic prompt management.
+
+**New SDK Methods:**
+Add `VirtualAgent.showSuggestions(prompts)` to display custom suggestions dynamically. Add `VirtualAgent.hideSuggestions()` to remove suggestions from view. Add `VirtualAgent.setSuggestions(prompts)` to update the default starter prompts. Support callback parameter to track which suggestion was clicked.
+
+**Example Usage:**
+```javascript
+// Show custom suggestions after specific user action
+VirtualAgent.showSuggestions([
+  'Learn more about this feature',
+  'See a demo',
+  'Contact support'
+]);
+
+// Track which suggestion was clicked
+VirtualAgent.on('suggestion-clicked', (data) => {
+  console.log('User clicked:', data.suggestion);
+});
+```
+
+**Implementation Location:**
+Add methods to the Widget SDK in `/svelte-wrapper/src/lib/utils/widget-api.ts`. Use postMessage to communicate suggestions to the iframe. Store suggestions in the widget's Svelte store. Render suggestions using the `StarterPrompts.tsx` component.
 
 
 ## Architecture
@@ -900,8 +1388,15 @@ Both projects enforce strict code quality standards:
 
 **POST /api/chat**
 - Send messages to the virtual agent
-- Request: `{ message: string, threadId?: string }`
+- Request: `{ message: string, threadId?: string, clientToken: string }`
 - Response: SSE stream with token-by-token delivery
+- Authentication: Requires valid client token
+
+**POST /api/session**
+- Create or refresh client authentication token
+- Request: `{ existingToken?: string }`
+- Response: `{ client_secret: string, expires_at: number, session_id: string }`
+- Used by widget for token-based authentication
 
 **GET /api/health**
 - Health check endpoint
@@ -914,7 +1409,7 @@ Both projects enforce strict code quality standards:
 
 **GET /api/config**
 - Get public agent configuration
-- Response: Agent name, greeting, theme colors, etc.
+- Response: Agent name, greeting, theme colors, starter prompts, etc.
 
 ### Widget Embedding
 
@@ -1027,6 +1522,22 @@ RATE_LIMIT_ENABLED=true
 - Use TailwindCSS for all styling
 - Write tests for new features
 - Update documentation as needed
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes, updates, and version releases.
+
+### Recent Updates
+
+**Version 0.1.0** (2025-10-21)
+- Initial project release with Next.js 15 and Svelte 5
+- LangChain/LangGraph integration with multi-provider LLM support
+- RAG capabilities and agentic workflows
+- Embeddable widget with playground
+- Comprehensive hooks system and Widget SDK
+- Typography color system and simplified theming
+
+For complete version history and detailed changes, please refer to the [CHANGELOG.md](CHANGELOG.md) file.
 
 ## License
 
