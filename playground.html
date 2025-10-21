@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Agent Widget - Playground</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-size: 2rem;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .header p {
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .status-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .status-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+    }
+
+    .status-value {
+      font-size: 0.875rem;
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-badge.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-badge.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid #e2e8f0;
+    }
+
+    .card h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 1.25rem;
+    }
+
+    .card p {
+      font-size: 0.875rem;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+
+    .code-block {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin: 1rem 0;
+    }
+
+    .command {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .command:last-child {
+      margin-bottom: 0;
+    }
+
+    .prompt {
+      color: #94a3b8;
+      user-select: none;
+    }
+
+    .steps {
+      counter-reset: step;
+    }
+
+    .step {
+      position: relative;
+      padding-left: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .step:before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2rem;
+      height: 2rem;
+      background: #3b82f6;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .step h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .alert {
+      background: #fef3c7;
+      border-left: 3px solid #f59e0b;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .alert-message {
+      color: #78350f;
+      font-size: 0.875rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background: #2563eb;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .status-bar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <div class="logo">🤖</div>
+      <div>
+        <h1>Virtual Agent Widget Playground</h1>
+        <p>Test and configure your AI widget</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-label">Widget Status</div>
+        <div class="status-value">
+          <span class="status-badge pending" id="widget-status">
+            <span class="status-dot"></span>
+            Not Loaded
+          </span>
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Position</div>
+        <div class="status-value" id="widget-position">bottom-right</div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Agent Endpoint</div>
+        <div class="status-value" id="agent-url">http://localhost:3000/embed</div>
+      </div>
+    </div>
+
+    <!-- Setup -->
+    <div class="card" style="margin-bottom: 1.25rem;">
+      <h2>Quick Setup</h2>
+      <div class="alert">
+        <div class="alert-title">Prerequisites</div>
+        <div class="alert-message">Both Next.js agent and Svelte widget must be running</div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <h3>Build Svelte Widget</h3>
+          <div class="code-block">
+            <div class="command"><span class="prompt">$</span> cd svelte-wrapper</div>
+            <div class="command"><span class="prompt">$</span> npm run build</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Copy to Root</h3>
+          <div class="code-block">
+            <div class="command"><span class="prompt">$</span> cp svelte-wrapper/static/widget.js ./widget.js</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Start Next.js Agent</h3>
+          <div class="code-block">
+            <div class="command"><span class="prompt">$</span> cd nextjs-agent</div>
+            <div class="command"><span class="prompt">$</span> npm run dev</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="grid">
+      <div class="card">
+        <h2>Widget Controls</h2>
+        <p>Test different configurations in real-time</p>
+        <div class="button-group">
+          <button class="button" onclick="VirtualAgent.open()">Open Widget</button>
+          <button class="button" onclick="VirtualAgent.close()">Close Widget</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Position</h2>
+        <p>Change widget position on screen</p>
+        <div class="button-group">
+          <button class="button" onclick="updatePosition('bottom-right')">Bottom Right</button>
+          <button class="button" onclick="updatePosition('bottom-left')">Bottom Left</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration -->
+    <div class="card">
+      <h2>Console Commands</h2>
+      <p>Try these commands in your browser console</p>
+      <div class="code-block">
+<span class="prompt">//</span> Change position
+VirtualAgent.updateConfig({ position: 'bottom-left' });
+
+<span class="prompt">//</span> Change color
+VirtualAgent.updateConfig({ primaryColor: '#8b5cf6' });
+
+<span class="prompt">//</span> Control visibility
+VirtualAgent.open();
+VirtualAgent.close();
+      </div>
+    </div>
+  </div>
+
+  <!-- Load the widget -->
+  <script src="./widget.js"></script>
+  <script>
+    function updatePosition(position) {
+      VirtualAgent.updateConfig({ position });
+      document.getElementById('widget-position').textContent = position;
+    }
+
+    // Initialize the widget
+    try {
+      VirtualAgent.init({
+        embedUrl: 'http://localhost:3000/embed',
+        position: 'bottom-right',
+        primaryColor: '#3b82f6',
+        agentName: 'Virtual Assistant'
+      });
+
+      // Update status
+      const statusEl = document.getElementById('widget-status');
+      statusEl.innerHTML = '<span class="status-dot"></span> Loaded';
+      statusEl.classList.remove('pending');
+      statusEl.classList.add('success');
+
+      console.log('✅ Virtual Agent Widget loaded successfully!');
+      console.log('📝 Try: VirtualAgent.updateConfig({ position: "bottom-left" })');
+    } catch (error) {
+      console.error('❌ Failed to load widget:', error);
+      const statusEl = document.getElementById('widget-status');
+      statusEl.innerHTML = '<span class="status-dot"></span> Error';
+      statusEl.classList.remove('pending');
+      statusEl.classList.add('error');
+    }
+  </script>
+</body>
+</html>
