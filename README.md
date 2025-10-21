@@ -205,6 +205,7 @@ virtual-agent/
 │   │   ├── components/                # React components
 │   │   │   ├── chat/
 │   │   │   │   ├── ChatInterface.tsx  # Main chat UI container
+│   │   │   │   ├── ChatHeader.tsx     # Chat header with agent info
 │   │   │   │   ├── MessageList.tsx    # Message list container
 │   │   │   │   ├── MessageBubble.tsx  # Individual message bubble
 │   │   │   │   ├── MessageInput.tsx   # User input field
@@ -338,25 +339,27 @@ SYSTEM_PROMPT="You are a helpful virtual assistant..."
 AGENT_NAME="Virtual Assistant"
 AGENT_ROLE="Customer Support"
 AGENT_GREETING="Hello! How can I help you today?"
+AGENT_TAGLINE="Always here to help"
 USE_CASE="customer_support"
 
 # =========================
 # UI Customization
 # =========================
-PRIMARY_COLOR="#007bff"
-SECONDARY_COLOR="#6c757d"
+PRIMARY_COLOR="#007bff"               # Used for user bubbles, buttons, highlights
+SECONDARY_COLOR="#6c757d"             # Used for agent bubbles, secondary elements
 BACKGROUND_COLOR="#ffffff"
 TEXT_COLOR="#333333"
 CHAT_BACKGROUND_SVG="default"         # Name of SVG file in public/backgrounds/
 BRAND_LOGO_URL=""
 AGENT_AVATAR_URL=""
+SHOW_STATUS_INDICATOR=true
+BUBBLE_BORDER_RADIUS="16"             # Border radius in pixels for message bubbles
 
-# Message Bubble Styling
-USER_BUBBLE_COLOR="#007bff"
-USER_BUBBLE_TEXT_COLOR="#ffffff"
-AGENT_BUBBLE_COLOR="#f1f3f5"
-AGENT_BUBBLE_TEXT_COLOR="#212529"
-BUBBLE_BORDER_RADIUS="16"             # Border radius in pixels
+# Typography Colors
+TEXT_PRIMARY="#1e293b"                # Primary text color (headings, important text)
+TEXT_SECONDARY="#64748b"              # Secondary text color (descriptions, metadata)
+TEXT_MUTED="#94a3b8"                  # Muted text color (timestamps, placeholders)
+TEXT_INVERSE="#ffffff"                # Inverse text color (text on dark backgrounds)
 
 # =========================
 # Database Configuration
@@ -389,6 +392,55 @@ NEXT_PUBLIC_EMBED_URL="http://localhost:3000/embed"
 
 ## UI Components
 
+### Chat Header Component (To Be Implemented)
+
+The `ChatHeader.tsx` component should be created to display agent information, status, and action buttons at the top of the chat interface.
+
+**Component Responsibilities:**
+- Display agent name and avatar
+- Show online/offline status indicator with colored dot
+- Display optional tagline or description
+- Include action buttons (close, minimize, settings)
+- Support theming via environment variables
+- Sticky positioning at top of chat
+
+**Environment Variables:**
+- AGENT_NAME - Display name
+- AGENT_AVATAR_URL - Avatar image path
+- AGENT_TAGLINE - Optional subtitle
+- TEXT_PRIMARY - Primary text color for agent name
+- TEXT_SECONDARY - Secondary text color for tagline
+- SHOW_STATUS_INDICATOR - Toggle status display
+
+**Visual Structure:**
+- Left Section: Agent avatar (rounded), agent name using TEXT_PRIMARY color, status indicator with green/gray dot, optional tagline using TEXT_SECONDARY color
+- Right Section: Action buttons (settings, minimize, close) with hover states
+- Bottom border separator for visual distinction
+- Subtle shadow for depth
+
+**Styling Approach:**
+- Use sticky positioning to keep header visible while scrolling
+- Flex layout with space-between for left/right sections
+- Rounded avatar with appropriate sizing
+- Icon buttons with hover states and smooth transitions
+- Online status shown with green dot (bg-green-500), offline with gray dot (bg-gray-400)
+- Support custom background and text colors via environment variables
+- Agent name uses TEXT_PRIMARY color for importance
+- Tagline uses TEXT_SECONDARY color for subtle contrast
+- Minimum 44x44px touch targets for accessibility
+
+**Responsive Considerations:**
+- Reduce padding and font sizes on mobile
+- Consider hiding tagline on very small screens
+- Ensure touch targets remain at least 44x44px
+- Stack action buttons if needed
+
+**Accessibility:**
+- Use semantic header element
+- Provide aria-labels for icon buttons
+- Ensure sufficient color contrast (TEXT_PRIMARY vs background)
+- Support keyboard navigation
+
 ### Message Bubble Component (To Be Implemented)
 
 The `MessageBubble.tsx` component should be created to display individual chat messages with full TailwindCSS customization.
@@ -410,89 +462,54 @@ The `MessageBubble.tsx` component should be created to display individual chat m
 - Renders single message with styling
 - User vs Agent differentiation
 - Avatar support
-- Timestamp display
+- Timestamp display using TEXT_MUTED color
 - Markdown rendering
 - Streaming text support
 - Customizable colors and border radius
 
-**Recommended Implementation:**
+**Environment Variables:**
+- PRIMARY_COLOR - Background color for user message bubbles
+- SECONDARY_COLOR - Background color for agent message bubbles
+- TEXT_INVERSE - Text color for user bubbles (white on colored background)
+- TEXT_PRIMARY - Text color for agent bubbles
+- TEXT_MUTED - Color for timestamps and metadata
+- BUBBLE_BORDER_RADIUS - Border radius in pixels for rounded corners
 
-**Styling via Environment Variables:**
-```env
-USER_BUBBLE_COLOR="#007bff"
-USER_BUBBLE_TEXT_COLOR="#ffffff"
-AGENT_BUBBLE_COLOR="#f1f3f5"
-AGENT_BUBBLE_TEXT_COLOR="#212529"
-BUBBLE_BORDER_RADIUS="16"
-```
+**Visual Structure:**
+The component uses flex layout that reverses direction based on the message role. User messages appear on the right with PRIMARY_COLOR background and TEXT_INVERSE text. Agent messages appear on the left with SECONDARY_COLOR background and TEXT_PRIMARY text. Optional avatar displays on the left for agent messages. Bubble content contains the message text with Markdown support, timestamp in TEXT_MUTED color, and optional speech bubble tail pointer.
 
-**Component Structure:**
-```tsx
-// MessageBubble.tsx
-interface MessageBubbleProps {
-  message: {
-    role: 'user' | 'agent';
-    content: string;
-    timestamp: Date;
-    avatar?: string;
-  };
-  isStreaming?: boolean;
-}
+**Styling Approach:**
+- User bubbles: PRIMARY_COLOR background, TEXT_INVERSE text, aligned right
+- Agent bubbles: SECONDARY_COLOR background, TEXT_PRIMARY text, aligned left
+- Timestamps: TEXT_MUTED color for subtle appearance
+- Border radius configurable via BUBBLE_BORDER_RADIUS environment variable
+- Shadow depth for visual elevation
+- Padding for comfortable reading
+- Maximum width constraint for readability
+- Proper alignment using margin auto classes
 
-// Visual Structure:
-MessageBubble/
-├── Container (flex row/row-reverse based on role)
-│   ├── Avatar (optional, left for agent, right for user)
-│   └── Bubble Content
-│       ├── Message Text (Markdown support)
-│       ├── Timestamp
-│       └── Tail/Pointer (speech bubble style)
-```
-
-**TailwindCSS Classes to Use:**
-- `rounded-{size}` - Bubble border radius (e.g., `rounded-2xl`)
-- `bg-{color}` - Background color (`bg-blue-500` for user, `bg-gray-100` for agent)
-- `text-{color}` - Text color
-- `shadow-{size}` - Shadow depth (`shadow-md` or `shadow-lg`)
-- `p-{size}` - Padding (`p-3` or `p-4`)
-- `max-w-{size}` - Maximum width (`max-w-md` or `max-w-lg`)
-- `ml-auto` / `mr-auto` - Alignment (user messages on right, agent on left)
-
-**Example Usage:**
-```tsx
-// In MessageList.tsx
-{messages.map((msg, index) => (
-  <MessageBubble
-    key={index}
-    message={msg}
-    isStreaming={index === messages.length - 1 && streaming}
-  />
-))}
-```
+**Typography Colors Usage:**
+- Message content uses TEXT_PRIMARY (agent) or TEXT_INVERSE (user)
+- Timestamps use TEXT_MUTED for reduced visual weight
+- Metadata uses TEXT_SECONDARY when needed
 
 ### Chat Background Component (To Be Implemented)
 
 The `ChatBackground.tsx` component should be created to support **customizable SVG backgrounds** for visual branding.
 
 **Background Location:**
-```
-public/backgrounds/
-├── default.svg          # Default geometric pattern
-├── gradient-1.svg       # Gradient background
-├── gradient-2.svg       # Alternate gradient
-├── pattern-1.svg        # Dot pattern
-├── pattern-2.svg        # Grid pattern
-└── custom.svg           # Your custom SVG
-```
+
+Store SVG background files in the `public/backgrounds/` directory with filenames like:
+- `default.svg` - Default geometric pattern
+- `gradient-1.svg` - Gradient background
+- `gradient-2.svg` - Alternate gradient
+- `pattern-1.svg` - Dot pattern
+- `pattern-2.svg` - Grid pattern
+- `custom.svg` - Your custom SVG
 
 **Configuration:**
-```env
-# Use SVG filename without extension
-CHAT_BACKGROUND_SVG="gradient-1"
 
-# Or use custom SVG
-CHAT_BACKGROUND_SVG="custom"
-```
+Use the `CHAT_BACKGROUND_SVG` environment variable to specify the SVG filename without extension (e.g., "gradient-1" or "custom").
 
 **SVG Best Practices:**
 - Use `viewBox` for scalability
@@ -501,55 +518,9 @@ CHAT_BACKGROUND_SVG="custom"
 - Consider dark mode compatibility
 - Test on mobile devices
 
-**Example SVG Structure:**
-```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
-  <defs>
-    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.1" />
-    </linearGradient>
-  </defs>
-  <rect width="1920" height="1080" fill="url(#bg-gradient)"/>
-</svg>
-```
+**Implementation Guidance:**
 
-**Recommended Implementation:**
-
-Create `ChatBackground.tsx` component that loads SVG backgrounds dynamically:
-
-```tsx
-// src/components/chat/ChatBackground.tsx
-interface ChatBackgroundProps {
-  backgroundName?: string;
-  opacity?: number;
-}
-
-export function ChatBackground({
-  backgroundName = 'default',
-  opacity = 0.5
-}: ChatBackgroundProps) {
-  return (
-    <div
-      className="absolute inset-0 pointer-events-none"
-      style={{
-        backgroundImage: `url(/backgrounds/${backgroundName}.svg)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        opacity: opacity
-      }}
-    />
-  );
-}
-
-// Usage in ChatInterface.tsx
-<div className="relative h-full">
-  <ChatBackground
-    backgroundName={process.env.CHAT_BACKGROUND_SVG || 'default'}
-  />
-  <MessageList messages={messages} />
-</div>
-```
+Create a ChatBackground component that accepts backgroundName and opacity props (defaulting to "default" and 0.5 respectively). The component should render an absolutely positioned div that covers the entire container using inset-0 classes with pointer-events disabled. Use inline styles to set the background image URL from the public/backgrounds directory, background size to cover, centered background position, and the specified opacity. This allows dynamic loading of SVG backgrounds based on the CHAT_BACKGROUND_SVG environment variable configuration.
 
 ### Svelte Widget Icons
 
@@ -557,18 +528,7 @@ The SvelteJS widget uses SVG icons for the chat button and controls. You have tw
 
 **Option A: Import from `src/lib/assets/` (Recommended)**
 
-Store icons in `src/lib/assets/` and import them directly in components:
-
-```svelte
-<!-- WidgetButton.svelte -->
-<script>
-  import BotIcon from '$lib/assets/bot-icon.svg';
-</script>
-
-<button class="...">
-  <img src={BotIcon} alt="Chat" class="w-6 h-6" />
-</button>
-```
+Store icons in `src/lib/assets/` and import them directly in Svelte components using the $lib/assets/ path alias, then reference in img tag's src attribute with appropriate size classes (w-6 h-6).
 
 **Advantages:**
 - Icons are bundled with the widget
@@ -578,14 +538,7 @@ Store icons in `src/lib/assets/` and import them directly in components:
 
 **Option B: Reference from `static/icons/` (Public URLs)**
 
-Store icons in `static/icons/` and reference via public URLs:
-
-```svelte
-<!-- WidgetButton.svelte -->
-<button class="...">
-  <img src="/icons/bot-default.svg" alt="Chat" class="w-6 h-6" />
-</button>
-```
+Store icons in `static/icons/` and reference via public URLs directly in img src attributes (e.g., "/icons/bot-default.svg").
 
 **Advantages:**
 - Easy to swap icons without rebuilding
@@ -593,13 +546,12 @@ Store icons in `static/icons/` and reference via public URLs:
 - Smaller bundle size
 
 **Recommended Icons:**
-```
-src/lib/assets/  (or static/icons/)
-├── bot-icon.svg       # Main chat button icon
-├── close-icon.svg     # Close dialog button
-├── minimize-icon.svg  # Minimize dialog button
-└── send-icon.svg      # Send message button (optional)
-```
+
+Your icons directory should contain:
+- `bot-icon.svg` - Main chat button icon
+- `close-icon.svg` - Close dialog button
+- `minimize-icon.svg` - Minimize dialog button
+- `send-icon.svg` - Send message button (optional)
 
 **Icon Best Practices:**
 - Use `viewBox` for scalability
@@ -607,48 +559,38 @@ src/lib/assets/  (or static/icons/)
 - Use single color with `currentColor` for theme compatibility
 - Size: 24x24px is standard
 
-**Example SVG Icon:**
-```svg
-<!-- bot-icon.svg -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-  <circle cx="12" cy="12" r="3"/>
-</svg>
-```
-
 **Dynamic Icon Configuration:**
 
-Allow users to customize the bot icon via widget initialization:
-
-```html
-<script>
-  VirtualAgent.init({
-    embedUrl: 'https://your-agent.com/embed',
-    botIconUrl: '/icons/custom-bot.svg',  // Custom icon
-    position: 'bottom-right'
-  });
-</script>
-```
+Allow users to customize the bot icon via widget initialization by accepting a `botIconUrl` parameter in the VirtualAgent.init() configuration object, which should point to a custom SVG file path.
 
 ### Theme Customization
 
 **TailwindCSS Theme Extension:**
-```javascript
-// tailwind.config.js (Next.js Agent)
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        'user-bubble': process.env.USER_BUBBLE_COLOR || '#007bff',
-        'agent-bubble': process.env.AGENT_BUBBLE_COLOR || '#f1f3f5',
-      },
-      borderRadius: {
-        'bubble': `${process.env.BUBBLE_BORDER_RADIUS || 16}px`,
-      }
-    }
-  }
-}
-```
+
+Extend your Tailwind configuration by adding custom color variables under the theme.extend.colors section. Map environment variables to color properties:
+- `primary` - from PRIMARY_COLOR (defaulting to '#007bff')
+- `secondary` - from SECONDARY_COLOR (defaulting to '#6c757d')
+- `background` - from BACKGROUND_COLOR (defaulting to '#ffffff')
+- `text-primary` - from TEXT_PRIMARY (defaulting to '#1e293b')
+- `text-secondary` - from TEXT_SECONDARY (defaulting to '#64748b')
+- `text-muted` - from TEXT_MUTED (defaulting to '#94a3b8')
+- `text-inverse` - from TEXT_INVERSE (defaulting to '#ffffff')
+
+Also extend borderRadius with a 'bubble' key that uses the BUBBLE_BORDER_RADIUS environment variable (defaulting to 16 pixels).
+
+**Using Theme Colors in Components:**
+
+Apply theme colors using Tailwind classes:
+- User message bubbles: `bg-primary text-inverse rounded-bubble p-4`
+- Agent message bubbles: `bg-secondary text-primary rounded-bubble p-4`
+- Headers and agent names: `text-primary`
+- Taglines and descriptions: `text-secondary`
+- Timestamps and placeholders: `text-muted`
+- Text on colored backgrounds: `text-inverse`
+- Container backgrounds: `bg-background`
+
+This approach ensures consistent theming across the application by referencing the extended Tailwind theme values instead of hardcoding colors. All typography elements use the appropriate semantic color (primary, secondary, muted, inverse) based on their importance and context.
+
 
 ## Architecture
 
