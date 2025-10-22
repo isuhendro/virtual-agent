@@ -14,7 +14,7 @@ export default [
     },
   },
   {
-    ignores: ['build/', '.svelte-kit/', 'dist/', 'static/widget.js'],
+    ignores: ['static/widget.js', 'node_modules'],
   },
   {
     rules: {

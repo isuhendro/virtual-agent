@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ChatHeader component documentation
 - MessageBubble component documentation
 - ChatBackground component documentation
+- Svelte 5 widget component with runes-based reactivity
+- Widget.svelte component with chat dialog and iframe embedding
+- Tailwind CSS styling for widget components
+- CSS file loading in playground for proper widget styling
 
 ### Changed
 - Simplified color configuration to PRIMARY_COLOR and SECONDARY_COLOR
@@ -32,10 +36,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved documentation structure with Hooks System, Widget SDK, Enhanced Security, and Starter Prompts sections
 - Added security environment variables (JWT_SECRET, SESSION_TOKEN_TTL, ALLOWED_DOMAINS)
 - Enhanced API Reference with session endpoint documentation
+- Migrated from SvelteKit to standalone Svelte 5 widget with Vite
+- Updated widget instantiation to use Svelte 5 mount() API
+- Changed component lifecycle to use unmount() instead of $destroy()
+- Configured Vite for IIFE library build for easy script tag embedding
+
+### Fixed
+- Fixed Svelte 5 component mounting by using mount() instead of new Component()
+- Fixed widget styling by adding CSS link in playground.html
 
 ### Removed
 - Component-specific color variables (USER_BUBBLE_COLOR, AGENT_BUBBLE_COLOR, etc.)
 - Code references from README UI Components section
+- SvelteKit-specific files (app.d.ts, app.html, routes, .npmrc)
 
 ## [0.1.0] - 2025-10-21
 

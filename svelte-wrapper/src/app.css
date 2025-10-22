@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root {
+	/* Widget-specific variables */
+	--widget-primary: #007bff;
+	--widget-secondary: #6c757d;
+}
+
+@theme inline {
+	--color-primary: var(--widget-primary);
+	--color-secondary: var(--widget-secondary);
+}
