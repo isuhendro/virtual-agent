@@ -10,7 +10,7 @@ export default defineConfig({
     lib: {
       entry: 'src/main.ts',
       name: 'VirtualAgent',
-      fileName: () => 'widget.js',
+      fileName: () => 'virtual-agent.js',
       formats: ['iife'],
     },
     rollupOptions: {

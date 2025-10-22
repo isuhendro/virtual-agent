@@ -20,8 +20,9 @@ interface WidgetConfig {
 }
 
 class VirtualAgentWidget {
-	private widget: Widget | null = null;
+	private widget: any = null;
 	private config: WidgetConfig | null = null;
+	private configStore: any = null;
 
 	init(config: WidgetConfig) {
 		console.log('🔧 VirtualAgent.init called with config:', config);
@@ -51,7 +52,11 @@ class VirtualAgentWidget {
 			this.widget = mount(Widget, {
 				target: container,
 				props: this.config,
-			}) as any;
+			});
+
+			// Store reference to component for updates
+			this.configStore = this.widget;
+
 			console.log('✅ Widget initialized successfully');
 		} catch (error) {
 			console.error('❌ Widget initialization failed:', error);
@@ -76,8 +81,34 @@ class VirtualAgentWidget {
 	}
 
 	updateConfig(partialConfig: Partial<WidgetConfig>) {
-		// TODO: Update widget config
 		console.log('Updating config:', partialConfig);
+
+		if (!this.config || !this.widget) {
+			console.error('Widget not initialized');
+			return;
+		}
+
+		// Update stored config
+		this.config = { ...this.config, ...partialConfig };
+
+		// Update widget props - Svelte 5 doesn't support direct prop updates
+		// We need to destroy and recreate the widget
+		const container = document.getElementById('virtual-agent-widget');
+		if (container) {
+			// Unmount existing widget
+			(this.widget as any).unmount?.();
+
+			// Clear the container to remove old DOM elements
+			container.innerHTML = '';
+
+			// Remount with new config
+			this.widget = mount(Widget, {
+				target: container,
+				props: this.config,
+			});
+
+			console.log('✅ Config updated:', this.config);
+		}
 	}
 
 	destroy() {

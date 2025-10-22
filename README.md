@@ -189,18 +189,13 @@ cd svelte-wrapper
 npm run build
 ```
 
-2. Copy the compiled widget to root:
-```bash
-cp svelte-wrapper/static/widget.js ./widget.js
-```
-
-3. Start the Next.js agent:
+2. Start the Next.js agent:
 ```bash
 cd nextjs-agent
 npm run dev
 ```
 
-4. Open the playground in your browser:
+3. Open the playground in your browser:
 ```bash
 open playground.html
 ```
@@ -327,7 +322,7 @@ virtual-agent/
 │   ├── static/
 │   │   ├── icons/                     # Alternative: Static SVG icons
 │   │   │   └── bot-default.svg        # Can be referenced directly
-│   │   └── widget.js                  # Compiled widget bundle
+│   │   └── virtual-agent.js            # Compiled widget bundle
 │   ├── .eslintrc.json
 │   ├── tailwind.config.js
 │   ├── svelte.config.js
@@ -335,7 +330,6 @@ virtual-agent/
 │   └── package.json
 │
 ├── playground.html                    # Widget testing playground
-├── widget.js                          # Compiled widget (copy from svelte-wrapper/static/)
 └── README.md                          # This file
 ```
 
@@ -580,7 +574,7 @@ NEXT_PUBLIC_EMBED_URL="http://localhost:3000/embed"
 - **State**: Svelte stores for widget state
 - **Communication**: postMessage API for iframe
 - **Code Quality**: ESLint, Prettier, svelte-check, Husky
-- **Bundle**: Compiles to single `widget.js` file
+- **Bundle**: Compiles to single `virtual-agent.js` file
 
 ### Infrastructure & DevOps
 - **Containerization**: Docker with multi-stage builds
@@ -1421,10 +1415,7 @@ Both projects enforce strict code quality standards:
 # Build widget
 cd svelte-wrapper && npm run build
 
-# Copy to root
-cp static/widget.js ../widget.js
-
-# Open playground
+# Open playground (loads from svelte-wrapper/static/ directly)
 open ../playground.html
 ```
 
@@ -1436,11 +1427,12 @@ cd svelte-wrapper
 npm run build
 ```
 
-2. Upload `widget.js` to your CDN/hosting
+2. Upload `svelte-wrapper/static/virtual-agent.js` and `svelte-wrapper/static/svelte-wrapper.css` to your CDN/hosting
 
 3. Embed on your website:
 ```html
-<script src="https://your-cdn.com/widget.js"></script>
+<link rel="stylesheet" href="https://your-cdn.com/svelte-wrapper.css">
+<script src="https://your-cdn.com/virtual-agent.js"></script>
 <script>
   VirtualAgent.init({
     embedUrl: 'https://your-nextjs-agent.com/embed',

@@ -1,6 +1,6 @@
 # Svelte Widget Wrapper
 
-Pure Svelte 5 + Vite embeddable widget that compiles to a single `widget.js` file.
+Pure Svelte 5 + Vite embeddable widget that compiles to a single `virtual-agent.js` file.
 
 ## Overview
 
@@ -13,7 +13,7 @@ npm run build
 ```
 
 **Outputs:**
-- `static/widget.js` - Standalone widget bundle (19KB, 8.2KB gzipped)
+- `static/virtual-agent.js` - Standalone widget bundle (25KB, 10KB gzipped)
 - `static/svelte-wrapper.css` - Widget styles (8.8KB, 2.6KB gzipped)
 
 ## Usage
@@ -36,7 +36,7 @@ npm run build
   <h1>Your Website</h1>
 
   <!-- Load the widget -->
-  <script src="./static/widget.js"></script>
+  <script src="./static/virtual-agent.js"></script>
 
   <!-- Initialize the widget -->
   <script>
@@ -113,10 +113,10 @@ svelte-wrapper/
 │   ├── Widget.svelte        # Main widget component
 │   └── app.css              # Tailwind CSS
 ├── static/
-│   ├── widget.js            # Compiled output (gitignored)
+│   ├── virtual-agent.js     # Compiled output (gitignored)
 │   └── svelte-wrapper.css   # Compiled styles (gitignored)
 ├── index.html               # Dev server page
-├── vite.config.ts           # Vite config (builds to widget.js)
+├── vite.config.ts           # Vite config (builds to virtual-agent.js)
 └── package.json
 ```
 
@@ -124,7 +124,7 @@ svelte-wrapper/
 
 The `vite.config.ts` is configured to:
 - Build as an IIFE (Immediately Invoked Function Expression)
-- Output to `static/widget.js`
+- Output to `static/virtual-agent.js`
 - Expose global `VirtualAgent` object
 - Inline all dependencies into single file
 
@@ -155,7 +155,7 @@ For an embeddable widget, we need:
 
 ```bash
 npm run dev          # Start dev server
-npm run build        # Build widget.js
+npm run build        # Build virtual-agent.js
 npm run preview      # Preview production build
 npm run check        # Svelte type checking
 npm run check:watch  # Watch mode type checking

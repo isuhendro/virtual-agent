@@ -312,7 +312,7 @@
       <h2>Quick Setup</h2>
       <div class="alert">
         <div class="alert-title">Prerequisites</div>
-        <div class="alert-message">Both Next.js agent and Svelte widget must be running</div>
+        <div class="alert-message">Widget must be built and Next.js agent must be running</div>
       </div>
 
       <div class="steps">
@@ -322,13 +322,9 @@
             <div class="command"><span class="prompt">$</span> cd svelte-wrapper</div>
             <div class="command"><span class="prompt">$</span> npm run build</div>
           </div>
-        </div>
-
-        <div class="step">
-          <h3>Copy to Root</h3>
-          <div class="code-block">
-            <div class="command"><span class="prompt">$</span> cp svelte-wrapper/static/widget.js ./widget.js</div>
-          </div>
+          <p style="margin-top: 0.75rem; font-size: 0.8125rem; color: #64748b;">
+            Builds virtual-agent.js and svelte-wrapper.css to svelte-wrapper/static/
+          </p>
         </div>
 
         <div class="step">
@@ -337,6 +333,13 @@
             <div class="command"><span class="prompt">$</span> cd nextjs-agent</div>
             <div class="command"><span class="prompt">$</span> npm run dev</div>
           </div>
+        </div>
+
+        <div class="step">
+          <h3>Open Playground</h3>
+          <p style="margin-top: 0.75rem; font-size: 0.875rem; color: #475569;">
+            The playground loads files directly from svelte-wrapper/static/
+          </p>
         </div>
       </div>
     </div>
@@ -382,7 +385,7 @@ VirtualAgent.close();
 
   <!-- Load the widget -->
   <link rel="stylesheet" href="./svelte-wrapper/static/svelte-wrapper.css">
-  <script src="./widget.js"></script>
+  <script src="./svelte-wrapper/static/virtual-agent.js"></script>
   <script>
     function updatePosition(position) {
       VirtualAgent.updateConfig({ position });
