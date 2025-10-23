@@ -9,21 +9,29 @@
 		position: string;
 		primaryColor: string;
 		agentName: string;
+		isOpen?: boolean;
 	}
 
-	let { embedUrl, position, primaryColor, agentName }: Props = $props();
+	let { embedUrl, position, primaryColor, agentName, isOpen = $bindable(false) }: Props = $props();
 
 	console.log('🎨 Widget received individual props:', {
 		embedUrl,
 		position,
 		primaryColor,
-		agentName
+		agentName,
+		isOpen
 	});
-
-	let isOpen = $state(false);
 
 	function toggleWidget() {
 		isOpen = !isOpen;
+	}
+
+	function openWidget() {
+		isOpen = true;
+	}
+
+	function closeWidget() {
+		isOpen = false;
 	}
 </script>
 

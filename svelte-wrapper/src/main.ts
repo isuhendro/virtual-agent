@@ -22,7 +22,7 @@ interface WidgetConfig {
 class VirtualAgentWidget {
 	private widget: any = null;
 	private config: WidgetConfig | null = null;
-	private configStore: any = null;
+	private container: HTMLElement | null = null;
 
 	init(config: WidgetConfig) {
 		console.log('🔧 VirtualAgent.init called with config:', config);
@@ -38,9 +38,9 @@ class VirtualAgentWidget {
 		console.log('🔧 Merged config:', this.config);
 
 		// Create widget container
-		const container = document.createElement('div');
-		container.id = 'virtual-agent-widget';
-		document.body.appendChild(container);
+		this.container = document.createElement('div');
+		this.container.id = 'virtual-agent-widget';
+		document.body.appendChild(this.container);
 
 		console.log('🔧 Container created, initializing Widget component...');
 
@@ -50,12 +50,9 @@ class VirtualAgentWidget {
 			console.log('🔧 Props:', this.config);
 
 			this.widget = mount(Widget, {
-				target: container,
+				target: this.container,
 				props: this.config,
 			});
-
-			// Store reference to component for updates
-			this.configStore = this.widget;
 
 			console.log('✅ Widget initialized successfully');
 		} catch (error) {
@@ -66,18 +63,39 @@ class VirtualAgentWidget {
 	}
 
 	open() {
-		// TODO: Implement open widget
 		console.log('Opening widget...');
+		if (this.widget && this.config) {
+			this.remount({ ...this.config, isOpen: true });
+		}
 	}
 
 	close() {
-		// TODO: Implement close widget
 		console.log('Closing widget...');
+		if (this.widget && this.config) {
+			this.remount({ ...this.config, isOpen: false });
+		}
 	}
 
 	toggle() {
-		// TODO: Implement toggle widget
 		console.log('Toggling widget...');
+		// We don't have a way to get current state, so just use open for now
+		this.open();
+	}
+
+	private remount(newConfig: any) {
+		if (!this.container) return;
+
+		// Unmount existing widget
+		(this.widget as any).unmount?.();
+
+		// Clear container
+		this.container.innerHTML = '';
+
+		// Remount with new config
+		this.widget = mount(Widget, {
+			target: this.container,
+			props: newConfig,
+		});
 	}
 
 	updateConfig(partialConfig: Partial<WidgetConfig>) {
@@ -91,24 +109,10 @@ class VirtualAgentWidget {
 		// Update stored config
 		this.config = { ...this.config, ...partialConfig };
 
-		// Update widget props - Svelte 5 doesn't support direct prop updates
-		// We need to destroy and recreate the widget
-		const container = document.getElementById('virtual-agent-widget');
-		if (container) {
-			// Unmount existing widget
-			(this.widget as any).unmount?.();
+		// Remount with new config
+		this.remount(this.config);
 
-			// Clear the container to remove old DOM elements
-			container.innerHTML = '';
-
-			// Remount with new config
-			this.widget = mount(Widget, {
-				target: container,
-				props: this.config,
-			});
-
-			console.log('✅ Config updated:', this.config);
-		}
+		console.log('✅ Config updated:', this.config);
 	}
 
 	destroy() {
