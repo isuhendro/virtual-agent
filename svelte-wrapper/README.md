@@ -6,6 +6,47 @@ Pure Svelte 5 + Vite embeddable widget that compiles to a single `virtual-agent.
 
 This is **NOT** a SvelteKit application. It's a pure Svelte + Vite project configured to build a standalone widget that can be embedded in any website via a `<script>` tag.
 
+## Architecture
+
+```mermaid
+graph TB
+    subgraph "Host Website"
+        HTML[HTML Page]
+        Script[Script Tag]
+    end
+
+    subgraph "Svelte Widget (virtual-agent.js)"
+        API[VirtualAgent API]
+        Widget[Widget.svelte]
+        Button[Chat Button with Chip]
+        Dialog[Dialog Window]
+        IFrame[Embedded IFrame]
+    end
+
+    subgraph "NextJS Agent (localhost:3000)"
+        EmbedRoute[/embed Route]
+        ChatInterface[Chat Interface]
+        Agent[AI Agent]
+    end
+
+    HTML --> Script
+    Script --> API
+    API --> Widget
+    Widget --> Button
+    Widget --> Dialog
+    Dialog --> IFrame
+    IFrame --> EmbedRoute
+    EmbedRoute --> ChatInterface
+    ChatInterface --> Agent
+
+    style Widget fill:#ff6b6b
+    style Button fill:#4ecdc4
+    style Dialog fill:#4ecdc4
+    style IFrame fill:#ffe66d
+    style EmbedRoute fill:#95e1d3
+    style ChatInterface fill:#95e1d3
+```
+
 ## Build Output
 
 ```bash

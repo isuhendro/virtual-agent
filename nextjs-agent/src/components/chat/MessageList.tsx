@@ -1,18 +1,47 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import MessageBubble from './MessageBubble';
+import TypingIndicator from './TypingIndicator';
+
+interface Message {
+  role: 'user' | 'agent';
+  content: string;
+  timestamp: string;
+}
+
+interface MessageListProps {
+  messages: Message[];
+  isLoading?: boolean;
+}
+
 /**
  * Message List Container
  * Manages scrolling and renders list of MessageBubble components
  */
-export default function MessageList() {
+export default function MessageList({ messages, isLoading = false }: MessageListProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {/* TODO: Map over messages array */}
-      {/* TODO: Render MessageBubble for each message */}
-      {/* TODO: Auto-scroll to bottom on new messages */}
-      <div className="text-text-muted text-center">
-        No messages yet
-      </div>
+      {messages.map((message, index) => (
+        <MessageBubble
+          key={index}
+          role={message.role}
+          content={message.content}
+          timestamp={message.timestamp}
+        />
+      ))}
+      {isLoading && <TypingIndicator />}
+      <div ref={messagesEndRef} />
     </div>
   );
 }
