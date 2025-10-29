@@ -363,6 +363,26 @@
           <button class="button" onclick="updatePosition('bottom-left')">Bottom Left</button>
         </div>
       </div>
+
+      <div class="card">
+        <h2>Display Mode</h2>
+        <p>Toggle between regular and full height dialog</p>
+        <div class="button-group">
+          <button class="button" onclick="toggleFullHeight(false)">Regular Mode</button>
+          <button class="button" onclick="toggleFullHeight(true)">Full Height</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Animation</h2>
+        <p>Choose dialog transition animation</p>
+        <div class="button-group">
+          <button class="button" onclick="updateAnimation('slide-right')">Slide Right</button>
+          <button class="button" onclick="updateAnimation('slide-left')">Slide Left</button>
+          <button class="button" onclick="updateAnimation('scale')">Scale</button>
+          <button class="button" onclick="updateAnimation('none')">None</button>
+        </div>
+      </div>
     </div>
 
     <!-- Configuration -->
@@ -375,6 +395,12 @@ VirtualAgent.updateConfig({ position: 'bottom-left' });
 
 <span class="prompt">//</span> Change color
 VirtualAgent.updateConfig({ primaryColor: '#8b5cf6' });
+
+<span class="prompt">//</span> Enable full height mode
+VirtualAgent.updateConfig({ fullHeight: true });
+
+<span class="prompt">//</span> Change animation
+VirtualAgent.updateConfig({ animation: 'scale' });
 
 <span class="prompt">//</span> Control visibility
 VirtualAgent.open();
@@ -392,13 +418,25 @@ VirtualAgent.close();
       document.getElementById('widget-position').textContent = position;
     }
 
+    function toggleFullHeight(fullHeight) {
+      VirtualAgent.updateConfig({ fullHeight });
+      console.log(`Full height mode: ${fullHeight ? 'enabled' : 'disabled'}`);
+    }
+
+    function updateAnimation(animation) {
+      VirtualAgent.updateConfig({ animation });
+      console.log(`Animation set to: ${animation}`);
+    }
+
     // Initialize the widget
     try {
       VirtualAgent.init({
         embedUrl: 'http://localhost:3000/embed',
         position: 'bottom-right',
         primaryColor: '#3b82f6',
-        agentName: 'Virtual Assistant'
+        agentName: 'Virtual Assistant',
+        fullHeight: true,
+        animation: 'slide-right'
       });
 
       // Update status

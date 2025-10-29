@@ -17,6 +17,8 @@ interface WidgetConfig {
 	size?: 'small' | 'medium' | 'large';
 	enableMinimize?: boolean;
 	enableSound?: boolean;
+	fullHeight?: boolean;
+	animation?: 'slide-left' | 'slide-right' | 'scale' | 'none';
 }
 
 class VirtualAgentWidget {
@@ -32,6 +34,8 @@ class VirtualAgentWidget {
 			position: 'bottom-right',
 			primaryColor: '#007bff',
 			agentName: 'Virtual Assistant',
+			animation: 'slide-right',
+			fullHeight: true,
 			...config,
 		};
 

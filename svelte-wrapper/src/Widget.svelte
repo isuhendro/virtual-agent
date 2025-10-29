@@ -10,17 +10,59 @@
 		primaryColor: string;
 		agentName: string;
 		isOpen?: boolean;
+		fullHeight?: boolean;
+		animation?: string;
 	}
 
-	let { embedUrl, position, primaryColor, agentName, isOpen = $bindable(false) }: Props = $props();
+	let { embedUrl, position, primaryColor, agentName, isOpen = $bindable(false), fullHeight = false, animation = 'slide-right' }: Props = $props();
+
+	let isClosing = $state(false);
+	let shouldRender = $state(false);
+
+	// Watch isOpen changes to trigger animations
+	$effect(() => {
+		if (isOpen) {
+			isClosing = false;
+			shouldRender = true;
+		} else if (shouldRender) {
+			// Start closing animation
+			isClosing = true;
+			// Remove from DOM after animation completes
+			setTimeout(() => {
+				shouldRender = false;
+				isClosing = false;
+			}, 300); // Match animation duration
+		}
+	});
 
 	console.log('🎨 Widget received individual props:', {
 		embedUrl,
 		position,
 		primaryColor,
 		agentName,
-		isOpen
+		isOpen,
+		fullHeight,
+		animation
 	});
+
+	// Get animation class based on animation type and state
+	function getAnimationClass() {
+		if (animation === 'none') return '';
+
+		if (isClosing) {
+			// Closing animations
+			if (animation === 'slide-left') return 'animate-slide-out-left';
+			if (animation === 'slide-right') return 'animate-slide-out-right';
+			if (animation === 'scale') return 'animate-scale-out';
+		} else {
+			// Opening animations
+			if (animation === 'slide-left') return 'animate-slide-in-left';
+			if (animation === 'slide-right') return 'animate-slide-in-right';
+			if (animation === 'scale') return 'animate-scale-in';
+		}
+
+		return 'animate-slide-in-right'; // default
+	}
 
 	function toggleWidget() {
 		isOpen = !isOpen;
@@ -35,20 +77,20 @@
 	}
 </script>
 
-<!-- Widget Dialog (when open) -->
-{#if isOpen}
-	<div class="fixed bottom-4 {position === 'bottom-right' ? 'right-4' : 'left-4'} z-[70]">
-		<div class="bg-white rounded-2xl shadow-2xl w-[450px] h-[700px] flex flex-col relative">
-			<!-- Close Button (Half Protruded, Top Right) -->
+<!-- Widget Dialog (when open or animating closed) -->
+{#if shouldRender}
+	<div class="fixed {fullHeight ? 'top-0 bottom-0' : 'bottom-4'} {fullHeight ? (position === 'bottom-right' ? 'right-0' : 'left-0') : (position === 'bottom-right' ? 'right-4' : 'left-4')} z-[70]">
+		<div class="bg-white {fullHeight ? 'rounded-none' : 'rounded-2xl'} shadow-2xl w-[450px] {fullHeight ? 'h-full' : 'h-[700px]'} flex flex-col relative {getAnimationClass()}">
+			<!-- Close Button (positioned inside for full height, protruded for regular) -->
 			<button
 				onclick={toggleWidget}
-				class="absolute -top-4 -right-4 z-10 bg-white hover:bg-gray-900 text-gray-900 hover:text-white text-lg font-semibold leading-none w-10 h-10 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-white shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105 cursor-pointer"
+				class="{fullHeight ? 'absolute top-4 right-4' : 'absolute -top-4 -right-4'} z-10 bg-white hover:bg-gray-900 text-gray-900 hover:text-white text-lg font-semibold leading-none w-10 h-10 flex items-center justify-center rounded-full border-2 border-gray-300 hover:border-white shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105 cursor-pointer"
 			>
 				✕
 			</button>
 
 			<!-- iframe Content -->
-			<div class="w-full h-full overflow-hidden rounded-2xl">
+			<div class="w-full h-full overflow-hidden {fullHeight ? '' : 'rounded-2xl'}">
 				<iframe src={embedUrl} class="w-full h-full border-0" title="Virtual Agent Chat"></iframe>
 			</div>
 		</div>

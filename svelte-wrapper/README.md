@@ -9,42 +9,45 @@ This is **NOT** a SvelteKit application. It's a pure Svelte + Vite project confi
 ## Architecture
 
 ```mermaid
-graph TB
-    subgraph "Host Website"
-        HTML[HTML Page]
-        Script[Script Tag]
+flowchart TB
+    subgraph host[Host Website]
+        HTML[HTML Page] --> Script[Script Tag]
     end
 
-    subgraph "Svelte Widget (virtual-agent.js)"
+    subgraph widget[Svelte Widget]
         API[VirtualAgent API]
-        Widget[Widget.svelte]
-        Button[Chat Button with Chip]
+        WComponent[Widget Component]
+        Button[Chat Button]
         Dialog[Dialog Window]
-        IFrame[Embedded IFrame]
     end
 
-    subgraph "NextJS Agent (localhost:3000)"
-        EmbedRoute[/embed Route]
-        ChatInterface[Chat Interface]
+    subgraph nextjs[NextJS Agent]
+        Embed[Embed Route]
+        Chat[Chat Interface]
         Agent[AI Agent]
     end
 
-    HTML --> Script
-    Script --> API
-    API --> Widget
-    Widget --> Button
-    Widget --> Dialog
-    Dialog --> IFrame
-    IFrame --> EmbedRoute
-    EmbedRoute --> ChatInterface
-    ChatInterface --> Agent
+    subgraph backend[Backend Services]
+        direction LR
+        RAG[RAG Component]
+        VectorDB[Vector Database]
+        OpenAI[OpenAI API]
+        Anthropic[Anthropic API]
+        Embeddings[Embedding Model]
+    end
 
-    style Widget fill:#ff6b6b
-    style Button fill:#4ecdc4
-    style Dialog fill:#4ecdc4
-    style IFrame fill:#ffe66d
-    style EmbedRoute fill:#95e1d3
-    style ChatInterface fill:#95e1d3
+    Script --> API
+    API --> WComponent
+    WComponent --> Button
+    WComponent --> Dialog
+    Dialog --> Embed
+    Embed --> Chat
+    Chat --> Agent
+    Agent --> RAG
+    Agent --> OpenAI
+    Agent --> Anthropic
+    RAG --> VectorDB
+    RAG --> Embeddings
 ```
 
 ## Build Output
@@ -107,7 +110,7 @@ Opens at `http://localhost:5173`
 ```typescript
 VirtualAgent.init({
   embedUrl: string;              // Required: URL to nextjs-agent /embed route
-  position?: string;             // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
+  position?: string;             // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' (default: 'bottom-right')
   primaryColor?: string;         // Widget button color (default: '#007bff')
   secondaryColor?: string;       // Secondary color
   agentName?: string;            // Display name (default: 'Virtual Assistant')
@@ -115,6 +118,8 @@ VirtualAgent.init({
   size?: string;                 // 'small' | 'medium' | 'large'
   enableMinimize?: boolean;      // Show minimize button
   enableSound?: boolean;         // Sound notifications
+  fullHeight?: boolean;          // Full height dialog mode (default: true)
+  animation?: string;            // 'slide-left' | 'slide-right' | 'scale' | 'none' (default: 'slide-right')
 });
 ```
 

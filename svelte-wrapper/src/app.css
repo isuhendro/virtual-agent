@@ -10,3 +10,97 @@
 	--color-primary: var(--widget-primary);
 	--color-secondary: var(--widget-secondary);
 }
+
+/* Animation keyframes - Opening */
+@keyframes slideInRight {
+	from {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideInLeft {
+	from {
+		transform: translateX(-100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes scaleIn {
+	from {
+		transform: scale(0);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Animation keyframes - Closing */
+@keyframes slideOutRight {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+}
+
+@keyframes slideOutLeft {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateX(-100%);
+		opacity: 0;
+	}
+}
+
+@keyframes scaleOut {
+	from {
+		transform: scale(1);
+		opacity: 1;
+	}
+	to {
+		transform: scale(0);
+		opacity: 0;
+	}
+}
+
+/* Animation classes - Opening */
+.animate-slide-in-right {
+	animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+	animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-scale-in {
+	animation: scaleIn 0.3s ease-out;
+}
+
+/* Animation classes - Closing */
+.animate-slide-out-right {
+	animation: slideOutRight 0.3s ease-in;
+}
+
+.animate-slide-out-left {
+	animation: slideOutLeft 0.3s ease-in;
+}
+
+.animate-scale-out {
+	animation: scaleOut 0.3s ease-in;
+}
