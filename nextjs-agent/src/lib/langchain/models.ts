@@ -4,15 +4,27 @@
  */
 
 import { config } from '@/lib/config/env';
+import { ChatAnthropic } from '@langchain/anthropic';
+import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
-export function initializeLLM() {
-  // TODO: Import and initialize based on config.llmProvider
-  // - @langchain/anthropic for Claude
-  // - @langchain/openai for GPT
-  // - @langchain/google-genai for Gemini
-
+export function initializeLLM(): BaseChatModel {
   console.log(`Initializing LLM provider: ${config.llmProvider}`);
 
-  // Placeholder return
-  return null;
+  if (config.llmProvider === 'anthropic') {
+    if (!config.anthropicApiKey) {
+      throw new Error('ANTHROPIC_API_KEY is required for Anthropic provider');
+    }
+
+    return new ChatAnthropic({
+      anthropicApiKey: config.anthropicApiKey,
+      modelName: config.anthropicModel,
+      temperature: config.temperature,
+      maxTokens: config.maxTokens,
+      topP: config.topP,
+      streaming: true,
+    });
+  }
+
+  // TODO: Add OpenAI and Google providers
+  throw new Error(`Unsupported LLM provider: ${config.llmProvider}`);
 }

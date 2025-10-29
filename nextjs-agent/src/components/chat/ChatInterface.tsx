@@ -1,50 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChatHeader from './ChatHeader';
 import ChatBackground from './ChatBackground';
 import MessageList from './MessageList';
 import StarterPrompts from './StarterPrompts';
 import MessageInput from './MessageInput';
-
-interface Message {
-  role: 'user' | 'agent';
-  content: string;
-  timestamp: string;
-}
+import { useChat } from '@/hooks/useChat';
 
 /**
  * Main Chat Interface Container
  * Orchestrates all chat components and manages conversation state
  */
 export default function ChatInterface() {
-  // Hardcoded demo messages for UI reference (static timestamps to avoid hydration errors)
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'user',
-      content: 'hi',
-      timestamp: '',
-    },
-    {
-      role: 'agent',
-      content:
-        "Hello! How can I assist you with PriceHub today? If you have a specific question or need help with a PriceHub feature, please let me know and I'll check the documentation for you.",
-      timestamp: '',
-    },
-    {
-      role: 'user',
-      content: 'how are you',
-      timestamp: '',
-    },
-    {
-      role: 'agent',
-      content:
-        "I'm here and ready to help you with any PriceHub-related questions! How can I assist you with your PriceHub tasks or issues today? If you have a specific question about using PriceHub, let me know, and I'll check the documentation to provide accurate guidance.",
-      timestamp: '',
-    },
-  ]);
+  const { messages, isLoading, error, sendMessage } = useChat();
+  const [mounted, setMounted] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
+  // Prevent hydration errors by only rendering after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const starterPrompts = process.env.NEXT_PUBLIC_STARTER_PROMPTS
     ? JSON.parse(process.env.NEXT_PUBLIC_STARTER_PROMPTS)
@@ -56,31 +31,27 @@ export default function ChatInterface() {
       ];
 
   const handlePromptClick = (prompt: string) => {
-    handleSendMessage(prompt);
+    sendMessage(prompt);
   };
 
   const handleSendMessage = (message: string) => {
-    const newUserMessage: Message = {
-      role: 'user',
-      content: message,
-      timestamp: '',
-    };
-
-    setMessages((prev) => [...prev, newUserMessage]);
-    setIsLoading(true);
-
-    // Simulate agent response
-    setTimeout(() => {
-      const agentResponse: Message = {
-        role: 'agent',
-        content:
-          "Thank you for your message! I'm here to help you with any questions or tasks related to our services. How can I assist you further?",
-        timestamp: '',
-      };
-      setMessages((prev) => [...prev, agentResponse]);
-      setIsLoading(false);
-    }, 1500);
+    sendMessage(message);
   };
+
+  if (!mounted) {
+    // Return a placeholder that matches the server-rendered output
+    return (
+      <div className="flex flex-col h-full bg-white relative">
+        <ChatHeader />
+        <div className="flex-1 overflow-hidden">
+          <div className="flex flex-col items-center justify-center h-full">
+            <StarterPrompts prompts={starterPrompts} onPromptClick={handlePromptClick} />
+          </div>
+        </div>
+        <MessageInput onSend={handleSendMessage} isLoading={false} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-white relative">
@@ -95,6 +66,12 @@ export default function ChatInterface() {
           <MessageList messages={messages} isLoading={isLoading} />
         )}
       </div>
+
+      {error && (
+        <div className="px-4 py-2 bg-red-50 text-red-600 text-sm">
+          {error}
+        </div>
+      )}
 
       <MessageInput onSend={handleSendMessage} isLoading={isLoading} />
     </div>
