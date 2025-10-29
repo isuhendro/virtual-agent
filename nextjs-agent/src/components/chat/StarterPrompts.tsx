@@ -25,7 +25,7 @@ export default function StarterPrompts({
           <button
             key={index}
             onClick={() => onPromptClick?.(prompt)}
-            className="p-3 text-left bg-secondary/10 hover:bg-primary hover:text-inverse text-text-primary rounded-lg transition cursor-pointer"
+            className="p-3 text-left bg-secondary/10 hover:bg-primary text-text-primary hover:text-white rounded-lg transition-all duration-200 cursor-pointer font-medium"
           >
             {prompt}
           </button>
