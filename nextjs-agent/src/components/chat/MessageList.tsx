@@ -31,7 +31,7 @@ export default function MessageList({ messages, isLoading = false }: MessageList
   }, [messages, isLoading]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="h-full overflow-y-auto p-4 space-y-4">
       {messages.map((message, index) => (
         <MessageBubble
           key={index}
