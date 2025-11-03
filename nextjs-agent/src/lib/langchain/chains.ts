@@ -32,9 +32,32 @@ export function createChatChain() {
   return chain;
 }
 
+export interface RAGChainInput {
+  question: string;
+  chatHistory?: BaseMessage[];
+  collectionName: string;
+  topK?: number;
+  scoreThreshold?: number;
+}
+
 export function createRAGChain() {
-  // TODO: Create RAG chain with vector store retriever
-  // TODO: Configure document retrieval
-  // TODO: Add reranking (optional)
-  return null;
+  const llm = initializeLLM();
+
+  // Create RAG prompt template with context in system message
+  // Anthropic only allows ONE system message, and it must be first
+  const prompt = ChatPromptTemplate.fromMessages([
+    ['system', `${config.systemPrompt}
+
+Retrieved Context from Knowledge Base:
+{context}
+
+Use the above context to help answer the user's question. If the context doesn't contain relevant information, you can still answer based on your general knowledge, but mention that the specific information wasn't found in the knowledge base.`],
+    new MessagesPlaceholder('chatHistory'),
+    ['human', '{question}'],
+  ]);
+
+  // Create chain
+  const chain = RunnableSequence.from([prompt, llm]);
+
+  return chain;
 }

@@ -50,6 +50,18 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || '',
   qdrantUrl: process.env.QDRANT_URL || 'http://localhost:6333',
   qdrantApiKey: process.env.QDRANT_API_KEY || '',
+  qdrantCollectionName: process.env.QDRANT_COLLECTION_NAME || 'knowledge_base',
+
+  // RAG Configuration
+  ragEnabled: process.env.RAG_ENABLED === 'true',
+  ragTopK: parseInt(process.env.RAG_TOP_K || '5'),
+  ragScoreThreshold: parseFloat(process.env.RAG_SCORE_THRESHOLD || '0.7'),
+  ragUseReranking: process.env.RAG_USE_RERANKING !== 'false', // Default to true
+
+  // Embedding Configuration (Local/Free using Transformers.js)
+  embeddingProvider: process.env.EMBEDDING_PROVIDER || 'transformers', // 'transformers', 'openai', 'voyage'
+  embeddingModel: process.env.EMBEDDING_MODEL || 'Xenova/all-MiniLM-L6-v2',
+  rerankerModel: process.env.RERANKER_MODEL || 'Xenova/ms-marco-MiniLM-L-6-v2',
 
   // Security & Authentication
   jwtSecret: process.env.JWT_SECRET || '',
