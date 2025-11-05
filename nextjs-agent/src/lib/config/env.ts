@@ -80,5 +80,5 @@ export const config = {
 
   // Next.js
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  embedUrl: process.env.NEXT_PUBLIC_EMBED_URL || 'http://localhost:3000/embed',
+  embedUrl: process.env.NEXT_PUBLIC_EMBED_URL || 'http://localhost:5000/embed',
 };
