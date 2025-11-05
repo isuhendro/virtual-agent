@@ -434,7 +434,7 @@ CORS_ENABLED=true
 # Next.js Specific
 # =========================
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_EMBED_URL="http://localhost:3000/embed"
+NEXT_PUBLIC_EMBED_URL="http://localhost:5000/embed"
 ```
 
 

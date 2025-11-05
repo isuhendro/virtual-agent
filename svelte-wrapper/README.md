@@ -85,7 +85,7 @@ npm run build
   <!-- Initialize the widget -->
   <script>
     VirtualAgent.init({
-      embedUrl: 'http://localhost:3000/embed',
+      embedUrl: 'http://localhost:5000/embed',
       position: 'bottom-right',
       primaryColor: '#007bff',
       agentName: 'Virtual Assistant'
