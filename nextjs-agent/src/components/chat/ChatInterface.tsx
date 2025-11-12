@@ -13,7 +13,7 @@ import { useChat } from '@/hooks/useChat';
  * Orchestrates all chat components and manages conversation state
  */
 export default function ChatInterface() {
-  const { messages, isLoading, error, sendMessage } = useChat();
+  const { messages, isLoading, error, sendMessage, resetConversation } = useChat();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration errors by only rendering after mount
@@ -42,7 +42,7 @@ export default function ChatInterface() {
     // Return a placeholder that matches the server-rendered output
     return (
       <div className="flex flex-col h-full bg-white relative">
-        <ChatHeader />
+        <ChatHeader onReset={resetConversation} />
         <div className="flex-1 overflow-hidden">
           <div className="flex flex-col items-center justify-center h-full">
             <StarterPrompts prompts={starterPrompts} onPromptClick={handlePromptClick} />
@@ -55,7 +55,7 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full bg-white relative">
-      <ChatHeader />
+      <ChatHeader onReset={resetConversation} />
 
       <div className="flex-1 overflow-hidden">
         {messages.length === 0 ? (

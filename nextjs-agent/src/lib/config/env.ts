@@ -29,6 +29,9 @@ export const config = {
   // Starter Prompts
   starterPrompts: JSON.parse(process.env.STARTER_PROMPTS || '[]') as string[],
 
+  // Disclaimer
+  disclaimerText: process.env.DISCLAIMER_TEXT || '',
+
   // UI Customization
   primaryColor: process.env.PRIMARY_COLOR || '#007bff',
   secondaryColor: process.env.SECONDARY_COLOR || '#6c757d',

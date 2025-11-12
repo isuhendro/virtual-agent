@@ -29,8 +29,15 @@ export default function MessageInput({ onSend, isLoading = false }: MessageInput
     }
   };
 
+  const disclaimerText = process.env.NEXT_PUBLIC_DISCLAIMER_TEXT || '';
+
   return (
     <div className="p-3 bg-white">
+      {disclaimerText && (
+        <div className="text-xs text-gray-400 text-center mb-2">
+          {disclaimerText}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <div className="flex-1 relative">
           <input
