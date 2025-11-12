@@ -83,7 +83,7 @@
 		if (hoverTimer) clearTimeout(hoverTimer);
 		hoverTimer = window.setTimeout(() => {
 			showPositionArrow = true;
-		}, 3000);
+		}, 1500);
 	}
 
 	function handleMouseLeave() {
