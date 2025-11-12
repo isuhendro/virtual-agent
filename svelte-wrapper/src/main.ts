@@ -119,6 +119,23 @@ class VirtualAgentWidget {
 		console.log('✅ Config updated:', this.config);
 	}
 
+	setPosition(newPosition: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left') {
+		console.log('Setting position:', newPosition);
+
+		if (!this.config || !this.widget) {
+			console.error('Widget not initialized');
+			return;
+		}
+
+		// Determine animation based on position
+		const animation = newPosition.includes('right') ? 'slide-right' : 'slide-left';
+
+		// Update config with new position and animation
+		this.updateConfig({ position: newPosition, animation });
+
+		console.log('✅ Position updated to:', newPosition);
+	}
+
 	destroy() {
 		if (this.widget) {
 			// Svelte 5 API: unmount() instead of $destroy()

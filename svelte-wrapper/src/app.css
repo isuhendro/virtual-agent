@@ -79,6 +79,28 @@
 	}
 }
 
+@keyframes arrowSlideInLeft {
+	from {
+		opacity: 0;
+		transform: translateX(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes arrowSlideInRight {
+	from {
+		opacity: 0;
+		transform: translateX(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
 /* Animation classes - Opening */
 .animate-slide-in-right {
 	animation: slideInRight 0.3s ease-out;
@@ -103,4 +125,13 @@
 
 .animate-scale-out {
 	animation: scaleOut 0.3s ease-in;
+}
+
+/* Arrow animations */
+.animate-arrow-slide-in-left {
+	animation: arrowSlideInLeft 0.3s ease-out;
+}
+
+.animate-arrow-slide-in-right {
+	animation: arrowSlideInRight 0.3s ease-out;
 }
