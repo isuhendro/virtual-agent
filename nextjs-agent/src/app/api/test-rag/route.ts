@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateQueryEmbedding } from '@/lib/embeddings';
-import { searchWithReranking, getCollections } from '@/lib/vector-db/qdrant';
+import { searchWithReranking, collectionExists, getCollectionInfo } from '@/lib/vector-db';
 import { preloadEmbeddingModel } from '@/lib/embeddings';
 import { preloadRerankerModel } from '@/lib/embeddings/reranker';
+import { config } from '@/lib/config/env';
 
 /**
  * GET /api/test-rag
@@ -44,20 +45,24 @@ export async function GET(request: NextRequest) {
       errors: [],
     };
 
-    // Step 1: Check Qdrant collections
+    // Step 1: Check vector database collection
     try {
-      console.log('🔄 [TEST] Step 1: Checking Qdrant collections...');
-      const collections = await getCollections();
-      results.steps.push('✅ Qdrant connection successful');
-      results.collections = collections.map((c: any) => c.name);
-      console.log(`✅ [TEST] Found ${collections.length} collections:`, results.collections);
+      console.log(`🔄 [TEST] Step 1: Checking ${config.vectorDbProvider} collection...`);
+      const exists = await collectionExists(collectionName);
 
-      if (!results.collections.includes(collectionName)) {
-        results.warnings = [`Collection "${collectionName}" not found in Qdrant`];
+      if (exists) {
+        results.steps.push(`✅ ${config.vectorDbProvider} connection successful`);
+        const collectionInfo = await getCollectionInfo(collectionName);
+        results.collectionExists = true;
+        results.collectionInfo = collectionInfo;
+        console.log(`✅ [TEST] Collection "${collectionName}" found`);
+        console.log(`   Points: ${collectionInfo.pointsCount || 'N/A'}`);
+      } else {
+        results.warnings = [`Collection "${collectionName}" not found in ${config.vectorDbProvider}`];
         console.warn(`⚠️ [TEST] Collection "${collectionName}" not found`);
       }
     } catch (error: any) {
-      const msg = `Qdrant connection failed: ${error.message}`;
+      const msg = `${config.vectorDbProvider} connection failed: ${error.message}`;
       results.errors.push(msg);
       console.error(`❌ [TEST] ${msg}`);
       results.steps.push(`❌ ${msg}`);

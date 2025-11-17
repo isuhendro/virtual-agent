@@ -26,11 +26,11 @@ export const config = {
   agentTagline: process.env.AGENT_TAGLINE || 'Always here to help',
   useCase: process.env.USE_CASE || 'customer_support',
 
-  // Starter Prompts
-  starterPrompts: JSON.parse(process.env.STARTER_PROMPTS || '[]') as string[],
+  // Starter Prompts (client-side accessible)
+  starterPrompts: JSON.parse(process.env.NEXT_PUBLIC_STARTER_PROMPTS || '[]') as string[],
 
-  // Disclaimer
-  disclaimerText: process.env.DISCLAIMER_TEXT || '',
+  // Disclaimer (client-side accessible)
+  disclaimerText: process.env.NEXT_PUBLIC_DISCLAIMER_TEXT || '',
 
   // UI Customization
   primaryColor: process.env.PRIMARY_COLOR || '#007bff',
@@ -51,6 +51,12 @@ export const config = {
 
   // Database
   databaseUrl: process.env.DATABASE_URL || '',
+
+  // Vector Database Configuration
+  vectorDbProvider: process.env.VECTOR_DB_PROVIDER || 'postgres', // 'postgres' or 'qdrant'
+  vectorDbCollectionName: process.env.VECTOR_DB_COLLECTION_NAME || 'knowledge_base',
+
+  // Qdrant (legacy)
   qdrantUrl: process.env.QDRANT_URL || 'http://localhost:6333',
   qdrantApiKey: process.env.QDRANT_API_KEY || '',
   qdrantCollectionName: process.env.QDRANT_COLLECTION_NAME || 'knowledge_base',

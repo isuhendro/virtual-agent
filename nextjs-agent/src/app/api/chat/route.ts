@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createChatChain, createRAGChain } from '@/lib/langchain/chains';
 import { HumanMessage, AIMessage, BaseMessage } from '@langchain/core/messages';
-import { searchSimilarDocuments, searchWithReranking } from '@/lib/vector-db/qdrant';
+import { searchSimilarDocuments, searchWithReranking } from '@/lib/vector-db';
 import { generateQueryEmbedding } from '@/lib/embeddings';
 import { config } from '@/lib/config/env';
 
@@ -14,8 +14,8 @@ import { config } from '@/lib/config/env';
  * - threadId?: string (conversation thread)
  * - chatHistory?: Array<{role: 'user' | 'agent', content: string}> (previous messages)
  * - clientToken?: string (JWT authentication token)
- * - useRAG?: boolean (enable RAG retrieval from Qdrant)
- * - collectionName?: string (Qdrant collection name for RAG)
+ * - useRAG?: boolean (enable RAG retrieval from vector database)
+ * - collectionName?: string (vector database collection/table name for RAG)
  * - topK?: number (number of documents to retrieve, default: 5)
  * - scoreThreshold?: number (minimum similarity score, default: 0.7)
  * - useReranking?: boolean (enable two-stage retrieval with reranking, default: true)
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       message,
       chatHistory = [],
       useRAG = config.ragEnabled,              // Default from environment
-      collectionName = config.qdrantCollectionName,
+      collectionName = config.vectorDbCollectionName,
       topK = config.ragTopK,
       scoreThreshold = config.ragScoreThreshold,
       useReranking = config.ragUseReranking
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
             );
           }
 
-          console.log(`\n✅ [CHAT API] Retrieved ${documents.length} documents from Qdrant`);
+          console.log(`\n✅ [CHAT API] Retrieved ${documents.length} documents from ${config.vectorDbProvider}`);
 
           // Format retrieved documents as context
           if (documents.length > 0) {

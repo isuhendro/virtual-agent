@@ -11,6 +11,7 @@ A production-ready boilerplate template for building sophisticated LLM applicati
 
 ### Getting Started
 - [Quick Start](#quick-start)
+- [Database Setup](#database-setup)
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
 
@@ -90,8 +91,8 @@ The system is fully customizable through environment variables, allowing adaptat
 - **Customizable UI**: Message bubbles, backgrounds, colors, and themes fully configurable
 
 ### Backend & Infrastructure
-- **Vector Database Ready**: Qdrant integration for embeddings storage and semantic search
-- **PostgreSQL Database**: Robust relational database for structured data and state persistence
+- **PostgreSQL with pgvector**: Vector similarity search with 384-dimensional embeddings for RAG
+- **PostgreSQL Database**: Robust relational database for structured data, state persistence, and vector storage
 - **Streaming Responses**: Server-Sent Events (SSE) for real-time AI response streaming
 - **Rate Limiting**: Built-in protection against abuse with configurable limits
 - **Middleware System**: CORS, authentication, validation, and security headers
@@ -115,8 +116,7 @@ The system is fully customizable through environment variables, allowing adaptat
 - Node.js 18.17+
 - npm, yarn, or pnpm
 - Git
-- PostgreSQL (optional, for state persistence)
-- Qdrant (optional, for RAG capabilities)
+- PostgreSQL 18+ with pgvector extension (required for RAG capabilities)
 
 ### Next.js 15 Virtual Agent Setup
 
@@ -209,6 +209,194 @@ The playground provides:
 
 
 
+## Database Setup
+
+This section provides step-by-step instructions for setting up PostgreSQL with the pgvector extension for RAG (Retrieval-Augmented Generation) capabilities.
+
+### Prerequisites
+
+Before starting, ensure you have:
+- PostgreSQL 18+ installed
+- Superuser access to PostgreSQL
+- Node.js 18.17+ (for running initialization scripts)
+
+### 1. Install PostgreSQL
+
+**macOS (using Homebrew):**
+```bash
+# Install PostgreSQL
+brew install postgresql@18
+
+# Start PostgreSQL service
+brew services start postgresql@18
+
+# Verify installation
+psql --version
+```
+
+**Ubuntu/Debian:**
+```bash
+# Add PostgreSQL repository
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+# Update and install
+sudo apt-get update
+sudo apt-get install postgresql-18 postgresql-contrib-18
+
+# Start PostgreSQL
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+**Windows:**
+- Download installer from [PostgreSQL official website](https://www.postgresql.org/download/windows/)
+- Run the installer and follow the setup wizard
+- Remember the password you set for the `postgres` user
+- PostgreSQL service should start automatically
+
+### 2. Install pgvector Extension
+
+The pgvector extension enables vector similarity search in PostgreSQL.
+
+**macOS:**
+```bash
+# Install pgvector
+brew install pgvector
+
+# Restart PostgreSQL
+brew services restart postgresql@18
+```
+
+**Ubuntu/Debian:**
+```bash
+# Install build dependencies
+sudo apt-get install postgresql-server-dev-18 build-essential git
+
+# Clone and build pgvector
+cd /tmp
+git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git
+cd pgvector
+make
+sudo make install
+
+# Restart PostgreSQL
+sudo systemctl restart postgresql
+```
+
+**Windows:**
+- Download pre-built pgvector binaries from [pgvector releases](https://github.com/pgvector/pgvector/releases)
+- Follow the installation instructions in the release notes
+- Restart PostgreSQL service from Services panel
+
+### 3. Create Database and User
+
+Create a dedicated database and user for the virtual agent:
+
+```bash
+# Connect to PostgreSQL as superuser
+psql postgres
+
+# Run these commands in the PostgreSQL prompt:
+```
+
+```sql
+-- Create database user
+CREATE USER your_db_user WITH PASSWORD 'your_secure_password_here';
+
+-- Create database
+CREATE DATABASE your_database OWNER your_db_user;
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON DATABASE your_database TO your_db_user;
+
+-- Connect to the new database
+\c your_database
+
+-- Enable pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Grant usage on schema
+GRANT ALL ON SCHEMA public TO your_db_user;
+
+-- Exit psql
+\q
+```
+
+### 4. Configure Environment Variables
+
+Update your `.env.local` file with the database connection string:
+
+```env
+# PostgreSQL Database
+DATABASE_URL=postgresql://your_db_user:your_secure_password_here@localhost:5432/your_database
+
+# Vector Database Configuration
+VECTOR_DB_PROVIDER=postgres
+VECTOR_DB_COLLECTION_NAME=knowledge_base
+```
+
+### 5. Initialize Database Schema
+
+Run the initialization script to create tables and indexes:
+
+```bash
+cd nextjs-agent
+
+# Initialize PostgreSQL tables and pgvector indexes
+npm run init-postgres
+```
+
+This script will:
+- Create the `knowledge_base` table for vector embeddings
+- Create HNSW index for fast similarity search
+- Set up JSONB metadata columns
+- Configure proper permissions
+
+**Expected output:**
+```
+✓ Connected to PostgreSQL
+✓ Created knowledge_base table
+✓ Created HNSW vector index
+✓ Database initialized successfully
+```
+
+### 6. Upload Documents for RAG
+
+To enable RAG capabilities, upload your knowledge base documents:
+
+1. **Prepare documents:**
+   - Place PDF, TXT, or MD files in `nextjs-agent/incoming/` folder
+   - Supported formats: PDF, TXT, MD, DOCX
+
+2. **Run the upload script:**
+   ```bash
+   npm run upload-docs
+   ```
+
+3. **What happens:**
+   - Documents are split into chunks (800 characters with 200-char overlap)
+   - Local embeddings generated using Transformers.js (384 dimensions)
+   - Vectors stored in PostgreSQL with metadata
+   - Progress displayed in console
+
+4. **Verify upload:**
+   ```bash
+   # Check document count (replace your_database with your actual database name)
+   psql your_database -c "SELECT COUNT(*) FROM knowledge_base;"
+   ```
+
+
+### Next Steps
+
+After database setup:
+1. Configure LLM provider API keys (Anthropic, OpenAI, or Google)
+2. Start the development server: `npm run dev`
+3. Test RAG queries through the chat interface
+4. Monitor query performance and adjust `RAG_TOP_K` settings
+
+
+
 ## Project Structure
 
 ```
@@ -254,8 +442,8 @@ virtual-agent/
 │   │   │   │   ├── persistence/       # PostgreSQL checkpointing
 │   │   │   │   ├── prompts.ts         # Prompt templates
 │   │   │   │   └── memory.ts          # Conversation memory
-│   │   │   ├── vector-db/             # Qdrant integration
-│   │   │   ├── embeddings/            # Embedding models
+│   │   │   ├── vector-db/             # PostgreSQL pgvector integration
+│   │   │   ├── embeddings/            # Embedding models (local Transformers.js)
 │   │   │   ├── utils/
 │   │   │   │   ├── rate-limiter.ts
 │   │   │   │   ├── validation.ts
@@ -401,9 +589,12 @@ TEXT_INVERSE="#ffffff"                # Inverse text color (text on dark backgro
 # =========================
 # Database Configuration
 # =========================
-DATABASE_URL="postgresql://user:password@localhost:5432/virtual_agent"
-QDRANT_URL="http://localhost:6333"
-QDRANT_API_KEY=""
+# PostgreSQL Database (used for both relational data and vector storage)
+DATABASE_URL="postgresql://your_db_user:your_password@localhost:5432/your_database"
+
+# Vector Database Configuration
+VECTOR_DB_PROVIDER="postgres"          # 'postgres' (recommended) or 'qdrant' (legacy)
+VECTOR_DB_COLLECTION_NAME="knowledge_base"
 
 # =========================
 # Widget Settings
@@ -475,8 +666,8 @@ NEXT_PUBLIC_EMBED_URL="http://localhost:5000/embed"
          ┌─────┴─────┐
          │           │
 ┌────────▼────┐ ┌────▼──────────┐
-│  LangChain  │ │ Vector DB     │
-│  - Claude   │ │ (Qdrant)      │
+│  LangChain  │ │ PostgreSQL    │
+│  - Claude   │ │ (pgvector)    │
 │  - OpenAI   │ │ - Embeddings  │
 │  - Gemini   │ │ - RAG         │
 └─────────────┘ └───────────────┘
@@ -485,9 +676,10 @@ NEXT_PUBLIC_EMBED_URL="http://localhost:5000/embed"
 ### RAG Architecture
 
 **Vector Database Integration:**
-- Qdrant for high-performance vector storage
-- SentenceTransformer embeddings for semantic representation
-- Hybrid search patterns with metadata filtering
+- PostgreSQL with pgvector extension for vector storage
+- Local SentenceTransformer embeddings (Xenova/all-MiniLM-L6-v2, 384 dimensions)
+- Cosine similarity search with HNSW indexing
+- Metadata filtering using JSONB columns
 - Intelligent document chunking strategies
 
 **Retrieval Pipeline:**
@@ -553,8 +745,8 @@ NEXT_PUBLIC_EMBED_URL="http://localhost:5000/embed"
   - `@langchain/anthropic` for Claude
   - `@langchain/openai` for GPT
   - `@langchain/google-genai` for Gemini
-- **Vector Database**: Qdrant for embeddings
-- **Embeddings**: SentenceTransformer models
+- **Vector Database**: PostgreSQL with pgvector extension
+- **Embeddings**: Local SentenceTransformer models (Transformers.js, 100% free)
 - **Database**: PostgreSQL for relational data
 - **Streaming**: Server-Sent Events (SSE)
 - **Styling**: TailwindCSS only (strictly enforced)
@@ -1274,20 +1466,22 @@ Remove API key authentication code paths. Update documentation to reflect token-
 ### RAG Implementation
 
 **1. Vector Database Setup**
-- Initialize Qdrant client with collections
+- Initialize PostgreSQL with pgvector extension (`npm run init-postgres`)
 - Configure vector dimensions (384 for SentenceTransformer)
-- Set distance metric (Cosine similarity recommended)
+- Create HNSW index for cosine similarity search
+- Set up JSONB metadata columns for filtering
 
 **2. Document Ingestion Pipeline**
-- **Chunking**: Split documents into 500-token chunks with 50-token overlap
-- **Embedding**: Generate vectors using SentenceTransformer
-- **Storage**: Upsert vectors to Qdrant with metadata
+- **Chunking**: Split documents into 800-char chunks with 200-char overlap
+- **Embedding**: Generate 384-dim vectors using local Transformers.js
+- **Storage**: Upsert vectors to PostgreSQL with JSONB metadata
+- **Upload**: Use `npm run upload-docs` to process documents from `incoming/` folder
 
 **3. RAG Chain Integration**
-- Create vector store wrapper around Qdrant
-- Configure retriever with top-k results (typically 5)
-- Build LangChain sequence: retrieval → formatting → generation
-- Implement optional reranking for improved relevance
+- Use PostgreSQL pgvector for vector similarity search
+- Configure retriever with top-k results (default: 5, or 20 with reranking)
+- Build LangChain sequence: retrieval → reranking → formatting → generation
+- Two-stage retrieval with CrossEncoder reranking for improved relevance
 
 ### Agentic Workflow Implementation
 
@@ -1517,9 +1711,10 @@ RATE_LIMIT_ENABLED=true
 - [ ] CORS allowed origins
 
 **Database Setup:**
-- [ ] PostgreSQL migrations run
-- [ ] Qdrant collections created
-- [ ] Index optimization completed
+- [ ] PostgreSQL with pgvector extension installed
+- [ ] Database initialized with `npm run init-postgres`
+- [ ] HNSW vector indexes created
+- [ ] Documents uploaded with `npm run upload-docs`
 - [ ] Backup strategy configured
 
 **Security:**
@@ -1632,6 +1827,8 @@ Built with:
 - [LangChain](https://js.langchain.com/)
 - [Anthropic Claude](https://www.anthropic.com/)
 - [OpenAI](https://openai.com/)
+- [PostgreSQL](https://www.postgresql.org/) with [pgvector](https://github.com/pgvector/pgvector)
+- [Transformers.js](https://huggingface.co/docs/transformers.js) for local embeddings
 - [SvelteJS](https://svelte.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
