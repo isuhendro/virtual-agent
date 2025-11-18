@@ -566,8 +566,6 @@ SECONDARY_COLOR="#6c757d"             # Used for agent bubbles, secondary elemen
 BACKGROUND_COLOR="#ffffff"
 TEXT_COLOR="#333333"
 CHAT_BACKGROUND_SVG="default"         # Name of SVG file in public/backgrounds/
-BRAND_LOGO_URL=""
-AGENT_AVATAR_URL=""
 SHOW_STATUS_INDICATOR=true
 BUBBLE_BORDER_RADIUS="16"             # Border radius in pixels for message bubbles
 
@@ -777,7 +775,6 @@ The `ChatHeader.tsx` component displays agent information, status, and action bu
 
 **Environment Variables:**
 - AGENT_NAME - Display name
-- AGENT_AVATAR_URL - Avatar image path
 - AGENT_TAGLINE - Optional subtitle
 - TEXT_PRIMARY - Primary text color for agent name
 - TEXT_SECONDARY - Secondary text color for tagline

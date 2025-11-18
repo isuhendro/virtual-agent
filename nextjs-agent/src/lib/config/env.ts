@@ -31,8 +31,6 @@ export const config = {
   backgroundColor: process.env.BACKGROUND_COLOR || '#ffffff',
   textColor: process.env.TEXT_COLOR || '#333333',
   chatBackgroundSvg: process.env.CHAT_BACKGROUND_SVG || 'default',
-  brandLogoUrl: process.env.BRAND_LOGO_URL || '',
-  agentAvatarUrl: process.env.AGENT_AVATAR_URL || '',
   showStatusIndicator: process.env.SHOW_STATUS_INDICATOR === 'true',
   bubbleBorderRadius: parseInt(process.env.BUBBLE_BORDER_RADIUS || '16'),
 
