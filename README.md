@@ -566,8 +566,6 @@ SECONDARY_COLOR="#6c757d"             # Used for agent bubbles, secondary elemen
 BACKGROUND_COLOR="#ffffff"
 TEXT_COLOR="#333333"
 CHAT_BACKGROUND_SVG="default"         # Name of SVG file in public/backgrounds/
-SHOW_STATUS_INDICATOR=true
-BUBBLE_BORDER_RADIUS="16"             # Border radius in pixels for message bubbles
 
 # Typography Colors
 TEXT_PRIMARY="#1e293b"                # Primary text color (headings, important text)
@@ -778,7 +776,6 @@ The `ChatHeader.tsx` component displays agent information, status, and action bu
 - AGENT_TAGLINE - Optional subtitle
 - TEXT_PRIMARY - Primary text color for agent name
 - TEXT_SECONDARY - Secondary text color for tagline
-- SHOW_STATUS_INDICATOR - Toggle status display
 
 **Visual Structure:**
 - Left Section: Agent avatar (rounded), agent name using TEXT_PRIMARY color, status indicator with green/gray dot, optional tagline using TEXT_SECONDARY color
@@ -841,7 +838,6 @@ The `MessageBubble.tsx` component displays individual chat messages with full Ta
 - TEXT_INVERSE - Text color for user bubbles (white on colored background)
 - TEXT_PRIMARY - Text color for agent bubbles
 - TEXT_MUTED - Color for timestamps and metadata
-- BUBBLE_BORDER_RADIUS - Border radius in pixels for rounded corners
 
 **Visual Structure:**
 The component uses flex layout that reverses direction based on the message role. User messages appear on the right with PRIMARY_COLOR background and TEXT_INVERSE text. Agent messages appear on the left with SECONDARY_COLOR background and TEXT_PRIMARY text. Optional avatar displays on the left for agent messages. Bubble content contains the message text with Markdown support, timestamp in TEXT_MUTED color, and optional speech bubble tail pointer.
@@ -850,7 +846,6 @@ The component uses flex layout that reverses direction based on the message role
 - User bubbles: PRIMARY_COLOR background, TEXT_INVERSE text, aligned right
 - Agent bubbles: SECONDARY_COLOR background, TEXT_PRIMARY text, aligned left
 - Timestamps: TEXT_MUTED color for subtle appearance
-- Border radius configurable via BUBBLE_BORDER_RADIUS environment variable
 - Shadow depth for visual elevation
 - Padding for comfortable reading
 - Maximum width constraint for readability
@@ -944,13 +939,11 @@ Extend your Tailwind configuration by adding custom color variables under the th
 - `text-muted` - from TEXT_MUTED (defaulting to '#94a3b8')
 - `text-inverse` - from TEXT_INVERSE (defaulting to '#ffffff')
 
-Also extend borderRadius with a 'bubble' key that uses the BUBBLE_BORDER_RADIUS environment variable (defaulting to 16 pixels).
-
 **Using Theme Colors in Components:**
 
 Apply theme colors using Tailwind classes:
-- User message bubbles: `bg-primary text-inverse rounded-bubble p-4`
-- Agent message bubbles: `bg-secondary text-primary rounded-bubble p-4`
+- User message bubbles: `bg-primary text-inverse p-4`
+- Agent message bubbles: `bg-secondary text-primary p-4`
 - Headers and agent names: `text-primary`
 - Taglines and descriptions: `text-secondary`
 - Timestamps and placeholders: `text-muted`

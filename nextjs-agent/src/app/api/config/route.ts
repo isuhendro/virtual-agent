@@ -12,6 +12,5 @@ export async function GET() {
     primaryColor: process.env.PRIMARY_COLOR || '#007bff',
     secondaryColor: process.env.SECONDARY_COLOR || '#6c757d',
     starterPrompts: JSON.parse(process.env.NEXT_PUBLIC_STARTER_PROMPTS || '[]'),
-    showStatusIndicator: process.env.SHOW_STATUS_INDICATOR === 'true',
   });
 }

@@ -32,7 +32,6 @@ export interface AgentConfig {
   primaryColor: string;
   secondaryColor: string;
   starterPrompts: string[];
-  showStatusIndicator: boolean;
 }
 
 export interface ChatRequest {
