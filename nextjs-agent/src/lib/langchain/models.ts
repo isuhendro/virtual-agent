@@ -20,7 +20,6 @@ export function initializeLLM(): BaseChatModel {
       modelName: config.anthropicModel,
       temperature: config.temperature,
       maxTokens: config.maxTokens,
-      topP: config.topP,
       streaming: true,
     });
   }

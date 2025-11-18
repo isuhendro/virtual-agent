@@ -16,7 +16,6 @@ export const config = {
   // LLM Parameters
   maxTokens: parseInt(process.env.MAX_TOKENS || '1000'),
   temperature: parseFloat(process.env.TEMPERATURE || '0.7'),
-  topP: parseFloat(process.env.TOP_P || '1'),
 
   // Agent Behavior
   systemPrompt: process.env.SYSTEM_PROMPT || 'You are a helpful virtual assistant...',

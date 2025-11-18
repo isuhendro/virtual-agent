@@ -552,7 +552,6 @@ GOOGLE_MODEL="gemini-pro"
 # LLM Parameters
 MAX_TOKENS=1000
 TEMPERATURE=0.7
-TOP_P=1
 
 # =========================
 # Agent Behavior
@@ -565,7 +564,10 @@ AGENT_TAGLINE="Always here to help"
 USE_CASE="customer_support"
 
 # Starter Prompts (JSON array of suggested questions)
-STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
+NEXT_PUBLIC_STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
+
+# Disclaimer Text
+NEXT_PUBLIC_DISCLAIMER_TEXT="Responses may not be accurate. Please verify critical information."
 
 # =========================
 # UI Customization
@@ -595,13 +597,6 @@ DATABASE_URL="postgresql://your_db_user:your_password@localhost:5432/your_databa
 # Vector Database Configuration
 VECTOR_DB_PROVIDER="postgres"          # 'postgres' (recommended) or 'qdrant' (legacy)
 VECTOR_DB_COLLECTION_NAME="knowledge_base"
-
-# =========================
-# Widget Settings
-# =========================
-WIDGET_POSITION="bottom-right"
-WIDGET_SIZE="medium"
-ENABLE_MINIMIZE=true
 
 # =========================
 # Security & Authentication
@@ -1002,14 +997,14 @@ Showcase the agent's capabilities through examples. Highlight unique or powerful
 Starter prompts are configured via environment variables as JSON arrays.
 
 **Environment Variable Structure:**
-Add `STARTER_PROMPTS` to your `.env.local` file as a JSON-encoded array of strings. Each string represents one suggested question or action. Limit to 3-4 prompts for optimal visual design. Update prompts based on user analytics and feedback.
+Add `NEXT_PUBLIC_STARTER_PROMPTS` to your `.env.local` file as a JSON-encoded array of strings. Each string represents one suggested question or action. Limit to 3-4 prompts for optimal visual design. Update prompts based on user analytics and feedback.
 
 **Important: LLM Prompt Transformation:**
 Starter prompts displayed to users should be transformed into optimized LLM prompts before sending to the agent. The displayed prompt is user-facing and conversational, while the actual prompt sent to the LLM can be more detailed with context and instructions. For example, a user-facing prompt "Track my order" might be transformed to "I need help tracking my recent order. Can you help me find the status?" before being sent to the agent.
 
 **Example Configuration:**
 ```env
-STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
+NEXT_PUBLIC_STARTER_PROMPTS='["How can I track my order?","What are your business hours?","Tell me about your return policy","Get started with a demo"]'
 ```
 
 **Category-Based Prompts:**
