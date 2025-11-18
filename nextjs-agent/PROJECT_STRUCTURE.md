@@ -118,7 +118,7 @@ The following are placeholder files that need full implementation:
 
 1. Install LangChain dependencies:
    ```bash
-   npm install langchain @langchain/anthropic @langchain/openai @langchain/google-genai
+   npm install langchain @langchain/anthropic
    ```
 
 2. Install database dependencies:

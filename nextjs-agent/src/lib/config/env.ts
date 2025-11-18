@@ -4,14 +4,9 @@
  */
 
 export const config = {
-  // LLM Provider
-  llmProvider: process.env.LLM_PROVIDER || 'anthropic',
+  // LLM Provider (Anthropic)
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
-  anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022',
-  openaiApiKey: process.env.OPENAI_API_KEY || '',
-  openaiModel: process.env.OPENAI_MODEL || 'gpt-4-turbo',
-  googleApiKey: process.env.GOOGLE_API_KEY || '',
-  googleModel: process.env.GOOGLE_MODEL || 'gemini-pro',
+  anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
 
   // LLM Parameters
   maxTokens: parseInt(process.env.MAX_TOKENS || '1000'),

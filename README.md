@@ -535,19 +535,9 @@ Create a `.env.local` file in the `nextjs-agent` directory:
 # =========================
 # LLM Provider Configuration
 # =========================
-LLM_PROVIDER="anthropic"              # "anthropic", "openai", or "google"
-
-# Anthropic Configuration (Claude)
+# Anthropic Configuration
 ANTHROPIC_API_KEY="your-anthropic-api-key"
-ANTHROPIC_MODEL="claude-3-5-sonnet-20241022"
-
-# OpenAI Configuration
-OPENAI_API_KEY="your-openai-api-key"
-OPENAI_MODEL="gpt-4-turbo"
-
-# Google Configuration
-GOOGLE_API_KEY="your-google-api-key"
-GOOGLE_MODEL="gemini-pro"
+ANTHROPIC_MODEL="claude-haiku-4-5-20251001"
 
 # LLM Parameters
 MAX_TOKENS=1000
@@ -737,9 +727,7 @@ NEXT_PUBLIC_EMBED_URL="http://localhost:5000/embed"
 - **LLM Orchestration**:
   - LangChain for LLM abstraction
   - LangGraph for agent workflows
-  - `@langchain/anthropic` for Claude
-  - `@langchain/openai` for GPT
-  - `@langchain/google-genai` for Gemini
+  - `@langchain/anthropic` for Claude (Anthropic)
 - **Vector Database**: PostgreSQL with pgvector extension
 - **Embeddings**: Local SentenceTransformer models (Transformers.js, 100% free)
 - **Database**: PostgreSQL for relational data

@@ -48,6 +48,6 @@ export interface ChatResponse {
   messageId: string;
 }
 
-export type LLMProvider = 'anthropic' | 'openai' | 'google';
+export type LLMProvider = 'anthropic';
 
 export type HookType = 'pre-message' | 'post-message' | 'on-error' | 'on-tool-call';
