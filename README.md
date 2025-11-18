@@ -584,24 +584,6 @@ VECTOR_DB_PROVIDER="postgres"          # 'postgres' (recommended) or 'qdrant' (l
 VECTOR_DB_COLLECTION_NAME="knowledge_base"
 
 # =========================
-# Security & Authentication
-# =========================
-# Token-based Authentication
-JWT_SECRET="your-secure-random-secret-minimum-32-characters"
-SESSION_TOKEN_TTL=1800                # Token TTL in seconds (30 minutes)
-SESSION_REFRESH_THRESHOLD=180          # Refresh tokens 3 minutes before expiry
-ALLOWED_DOMAINS="localhost:3000,yourdomain.com,*.yourdomain.com"
-ENABLE_TOKEN_ROTATION=true
-MAX_SESSIONS_PER_USER=5
-SESSION_AUDIT_ENABLED=true
-
-# Rate Limiting & CORS
-RATE_LIMIT_REQUESTS=10
-RATE_LIMIT_WINDOW=60
-ALLOWED_ORIGINS="http://localhost:3000,https://yourdomain.com"
-CORS_ENABLED=true
-
-# =========================
 # Next.js Specific
 # =========================
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
@@ -1352,65 +1334,6 @@ Create the endpoint at `/nextjs-agent/src/app/api/session/route.ts` using Next.j
 
 ### Domain Allowlist
 
-Protect against unauthorized widget usage by validating request origins.
-
-**Configuration:**
-Add `ALLOWED_DOMAINS` to environment variables as a comma-separated list. The middleware checks the request Origin header against the allowlist. Reject requests from unauthorized domains with 403 Forbidden status. Support wildcard patterns for subdomain flexibility (e.g., `*.yourdomain.com`).
-
-**Implementation Approach:**
-Create domain validation middleware in `/nextjs-agent/src/middleware.ts`. Parse the Origin header from incoming requests. Compare against the configured allowlist with pattern matching. Log rejected requests for security monitoring. Allow localhost and development URLs in non-production environments.
-
-### Token Refresh Mechanism
-
-Implement automatic token refresh in the widget to maintain seamless user experience.
-
-**Client-Side Logic:**
-The widget SDK includes a `getClientSecret()` method that accepts an existing token parameter. When the current token approaches expiration (2-3 minutes before), automatically request a new token. The server validates the existing token and issues a fresh one if valid. The widget updates its internal token and continues operation without interruption.
-
-**Frontend Implementation:**
-Extend the Widget SDK initialization to include token management. Add a token expiration monitor that checks remaining validity. Implement exponential backoff for failed refresh attempts. Store tokens securely in memory (not localStorage) to prevent XSS access. Clear tokens immediately when the widget is closed or destroyed.
-
-### Environment Variables
-
-Add security-related configuration to the environment variables section.
-
-**Required Variables:**
-- `JWT_SECRET` - Secret key for signing tokens (minimum 32 characters)
-- `SESSION_TOKEN_TTL` - Token time-to-live in seconds (default: 1800 for 30 minutes)
-- `ALLOWED_DOMAINS` - Comma-separated list of authorized domains
-- `SESSION_REFRESH_THRESHOLD` - Seconds before expiration to trigger refresh (default: 180)
-
-**Optional Security Variables:**
-- `ENABLE_TOKEN_ROTATION` - Rotate tokens on each refresh (default: true)
-- `MAX_SESSIONS_PER_USER` - Limit concurrent sessions per user (default: 5)
-- `SESSION_AUDIT_ENABLED` - Log session events to database (default: true)
-
-### Database Schema
-
-Store session metadata for audit trails and security monitoring.
-
-**Session Table Structure:**
-Create a sessions table with columns for session_id (UUID primary key), user_id (optional identifier), client_token_hash (hashed token for lookup), created_at (session start timestamp), expires_at (token expiration time), last_refreshed_at (most recent refresh), ip_address (client IP for security), user_agent (browser/device info), and is_revoked (manual revocation flag).
-
-**Benefits:**
-Track active sessions per user for security limits. Provide audit trails for compliance requirements. Enable manual session revocation for compromised accounts. Monitor suspicious patterns like excessive refresh attempts. Support analytics on session duration and usage patterns.
-
-### Best Practices
-
-**Token Security:**
-- Never log complete tokens (only log hashed versions)
-- Use cryptographically secure random values for JWT secrets
-- Rotate JWT_SECRET periodically in production
-- Set appropriate token TTL based on risk tolerance
-- Implement token blacklisting for logout functionality
-
-**Domain Security:**
-- Keep ALLOWED_DOMAINS as restrictive as possible
-- Use HTTPS-only in production to prevent token interception
-- Implement Content Security Policy (CSP) headers
-- Monitor and alert on requests from unauthorized domains
-- Regularly audit domain allowlist for outdated entries
-
 **Session Monitoring:**
 - Track failed authentication attempts
 - Alert on unusual session patterns (rapid creation, geographic anomalies)
@@ -1650,23 +1573,12 @@ VirtualAgent.close();
 
 - Never commit `.env.local` or `.env` files containing API keys
 - Use environment variables for all sensitive data
-- Implement rate limiting in production
 - Validate and sanitize all user inputs
 - Use HTTPS in production
-- Configure CORS properly with `ALLOWED_ORIGINS`
 - Use Next.js 15 middleware for security headers
 - Implement CSP (Content Security Policy) headers
 - Regular dependency updates for security patches
 - Store API keys in secure secrets manager
-
-### Rate Limiting
-
-Configure via environment variables:
-```env
-RATE_LIMIT_REQUESTS=10
-RATE_LIMIT_WINDOW=60
-RATE_LIMIT_ENABLED=true
-```
 
 
 

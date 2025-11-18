@@ -61,21 +61,6 @@ export const config = {
   embeddingModel: process.env.EMBEDDING_MODEL || 'Xenova/all-MiniLM-L6-v2',
   rerankerModel: process.env.RERANKER_MODEL || 'Xenova/ms-marco-MiniLM-L-6-v2',
 
-  // Security & Authentication
-  jwtSecret: process.env.JWT_SECRET || '',
-  sessionTokenTtl: parseInt(process.env.SESSION_TOKEN_TTL || '1800'),
-  sessionRefreshThreshold: parseInt(process.env.SESSION_REFRESH_THRESHOLD || '180'),
-  allowedDomains: process.env.ALLOWED_DOMAINS?.split(',') || [],
-  enableTokenRotation: process.env.ENABLE_TOKEN_ROTATION === 'true',
-  maxSessionsPerUser: parseInt(process.env.MAX_SESSIONS_PER_USER || '5'),
-  sessionAuditEnabled: process.env.SESSION_AUDIT_ENABLED === 'true',
-
-  // Rate Limiting
-  rateLimitRequests: parseInt(process.env.RATE_LIMIT_REQUESTS || '10'),
-  rateLimitWindow: parseInt(process.env.RATE_LIMIT_WINDOW || '60'),
-  allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || [],
-  corsEnabled: process.env.CORS_ENABLED === 'true',
-
   // Next.js
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   embedUrl: process.env.NEXT_PUBLIC_EMBED_URL || 'http://localhost:5000/embed',
