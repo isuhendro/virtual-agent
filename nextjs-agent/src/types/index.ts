@@ -28,7 +28,6 @@ export interface Session {
 export interface AgentConfig {
   agentName: string;
   agentRole: string;
-  agentGreeting: string;
   agentTagline: string;
   primaryColor: string;
   secondaryColor: string;

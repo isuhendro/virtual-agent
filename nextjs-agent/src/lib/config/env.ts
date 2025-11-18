@@ -16,7 +16,6 @@ export const config = {
   systemPrompt: process.env.SYSTEM_PROMPT || 'You are a helpful virtual assistant...',
   agentName: process.env.AGENT_NAME || 'Virtual Assistant',
   agentRole: process.env.AGENT_ROLE || 'Customer Support',
-  agentGreeting: process.env.AGENT_GREETING || 'Hello! How can I help you today?',
   agentTagline: process.env.AGENT_TAGLINE || 'Always here to help',
   useCase: process.env.USE_CASE || 'customer_support',
 

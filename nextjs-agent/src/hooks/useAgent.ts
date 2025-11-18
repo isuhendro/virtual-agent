@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 interface AgentConfig {
   agentName: string;
   agentRole: string;
-  agentGreeting: string;
   primaryColor: string;
   secondaryColor: string;
   starterPrompts: string[];

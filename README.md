@@ -549,7 +549,6 @@ TEMPERATURE=0.7
 SYSTEM_PROMPT="You are a helpful virtual assistant..."
 AGENT_NAME="Virtual Assistant"
 AGENT_ROLE="Customer Support"
-AGENT_GREETING="Hello! How can I help you today?"
 AGENT_TAGLINE="Always here to help"
 USE_CASE="customer_support"
 
